@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>360 Risk Management Associates | Independent Insurance Brokers · Stamford, CT</title>
+<meta name="description" content="Independent insurance brokers in Stamford, CT. Attorney-led risk management for commercial, personal, auto, home, and life coverage. Pay for protection, not advertising.">
+<link rel="icon" type="image/png" href="images/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..900,0..100&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream:        #F6F1E9;
+    --cream-deep:   #EBE3D2;
+    --ink:          #0F1B2D;
+    --ink-soft:     #2B3A52;
+    --muted:        #6B7384;
+    --rule:         #DDD3C0;
+    --red:          #D7253A;
+    --red-deep:     #A81B2C;
+    --max:          1240px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+    color: var(--ink);
+    background: var(--cream);
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  img { max-width: 100%; display: block; }
+  a { color: inherit; text-decoration: none; }
+  .container { max-width: var(--max); margin: 0 auto; padding: 0 32px; }
+
+  /* ---------- NAV ---------- */
+  header.nav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(246, 241, 233, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid transparent;
+    transition: border-color .3s ease;
+  }
+  header.nav.scrolled { border-bottom-color: var(--rule); }
+  .nav-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 32px; max-width: var(--max); margin: 0 auto; gap: 24px;
+  }
+  .nav-logo img { height: 44px; width: auto; }
+  .nav-menu { display: flex; gap: 36px; list-style: none; }
+  .nav-menu a {
+    font-size: 14px; font-weight: 500; letter-spacing: .02em;
+    color: var(--ink-soft); position: relative; padding: 6px 0;
+    transition: color .2s;
+  }
+  .nav-menu a::after {
+    content: ''; position: absolute; bottom: 0; left: 0;
+    width: 0; height: 1.5px; background: var(--red);
+    transition: width .25s ease;
+  }
+  .nav-menu a:hover { color: var(--ink); }
+  .nav-menu a:hover::after { width: 100%; }
+  .nav-cta {
+    font-family: 'Fraunces', serif;
+    font-size: 17px; font-weight: 500;
+    color: var(--red); padding: 10px 18px;
+    border: 1.5px solid var(--red); border-radius: 999px;
+    transition: all .2s;
+  }
+  .nav-cta:hover { background: var(--red); color: var(--cream); }
+  .nav-toggle { display: none; background: none; border: none; cursor: pointer; padding: 8px; }
+  .nav-toggle span {
+    display: block; width: 22px; height: 1.5px; background: var(--ink); margin: 5px 0;
+    transition: transform .25s, opacity .25s;
+  }
+
+  /* ---------- HERO ---------- */
+  .hero { padding: 80px 0 120px; position: relative; overflow: hidden; }
+  .hero::before {
+    content: ''; position: absolute; top: -10%; right: -8%; width: 520px; height: 520px;
+    background: radial-gradient(circle, rgba(215, 37, 58, 0.06) 0%, transparent 70%);
+    border-radius: 50%; pointer-events: none;
+  }
+  .hero-grid {
+    display: grid; grid-template-columns: 1.1fr 1fr; gap: 80px; align-items: center;
+  }
+  .hero-eyebrow {
+    font-family: 'Manrope', sans-serif; font-size: 12px; font-weight: 600;
+    letter-spacing: .25em; text-transform: uppercase; color: var(--red);
+    margin-bottom: 28px; display: flex; align-items: center; gap: 14px;
+  }
+  .hero-eyebrow::before {
+    content: ''; width: 36px; height: 1px; background: var(--red);
+  }
+  .hero h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 380;
+    font-size: clamp(2.6rem, 5.2vw, 4.5rem);
+    line-height: 1.04;
+    letter-spacing: -.02em;
+    color: var(--ink);
+    margin-bottom: 28px;
+    font-variation-settings: "SOFT" 50;
+  }
+  .hero h1 em {
+    font-style: italic;
+    font-weight: 350;
+    color: var(--red);
+    font-variation-settings: "SOFT" 100;
+  }
+  .hero p.lede {
+    font-size: 19px; color: var(--ink-soft); max-width: 480px; margin-bottom: 40px;
+  }
+  .hero-ctas { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 16px 28px; border-radius: 999px;
+    font-weight: 600; font-size: 15px; letter-spacing: .01em;
+    transition: all .2s ease; cursor: pointer; border: none;
+  }
+  .btn-primary { background: var(--ink); color: var(--cream); }
+  .btn-primary:hover { background: var(--red); transform: translateY(-2px); }
+  .btn-secondary { color: var(--ink); padding-left: 8px; }
+  .btn-secondary:hover { color: var(--red); }
+  .btn-secondary svg { transition: transform .2s; }
+  .btn-secondary:hover svg { transform: translateX(4px); }
+
+  .hero-visual {
+    position: relative; aspect-ratio: 4/5; max-width: 480px; margin-left: auto;
+  }
+  .hero-visual::before {
+    content: ''; position: absolute; inset: 0;
+    background: var(--red); border-radius: 6px;
+    transform: rotate(-3deg) translate(20px, 20px); z-index: 0;
+    transition: transform .5s ease;
+  }
+  .hero-visual:hover::before { transform: rotate(-1deg) translate(28px, 28px); }
+  .hero-visual img {
+    position: relative; z-index: 1;
+    width: 100%; height: 100%; object-fit: cover;
+    border-radius: 6px;
+    box-shadow: 0 30px 60px -20px rgba(15, 27, 45, 0.25);
+  }
+  .hero-stat {
+    position: absolute; bottom: -32px; left: -32px; z-index: 2;
+    background: var(--cream); padding: 22px 28px; border-radius: 6px;
+    box-shadow: 0 10px 30px -10px rgba(15, 27, 45, 0.15);
+    border: 1px solid var(--rule);
+  }
+  .hero-stat .num {
+    font-family: 'Fraunces', serif; font-size: 38px; font-weight: 400;
+    color: var(--red); line-height: 1;
+  }
+  .hero-stat .lbl {
+    font-size: 12px; color: var(--muted); text-transform: uppercase;
+    letter-spacing: .15em; margin-top: 6px;
+  }
+
+  /* ---------- SECTIONS ---------- */
+  section { padding: 110px 0; position: relative; }
+  .section-eyebrow {
+    font-size: 12px; font-weight: 600; letter-spacing: .25em;
+    text-transform: uppercase; color: var(--red); margin-bottom: 20px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .section-eyebrow::before {
+    content: ''; width: 28px; height: 1px; background: var(--red);
+  }
+  .section-title {
+    font-family: 'Fraunces', serif; font-weight: 350;
+    font-size: clamp(2rem, 3.8vw, 3rem);
+    line-height: 1.1; letter-spacing: -.02em;
+    margin-bottom: 24px; max-width: 720px;
+  }
+  .section-title em { font-style: italic; color: var(--red); }
+  .section-lede {
+    font-size: 18px; color: var(--ink-soft); max-width: 640px; margin-bottom: 60px;
+  }
+
+  /* ---------- WHY US (3 pillars) ---------- */
+  .pillars { background: var(--cream-deep); }
+  .pillar-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+  }
+  .pillar {
+    background: var(--cream-deep); padding: 50px 40px;
+    transition: background .3s ease;
+  }
+  .pillar:hover { background: var(--cream); }
+  .pillar-num {
+    font-family: 'Fraunces', serif; font-size: 14px; color: var(--red);
+    margin-bottom: 24px; letter-spacing: .1em;
+  }
+  .pillar h3 {
+    font-family: 'Fraunces', serif; font-weight: 400;
+    font-size: 26px; line-height: 1.2; margin-bottom: 16px;
+  }
+  .pillar p { color: var(--ink-soft); font-size: 16px; }
+
+  /* ---------- SERVICES (What We Offer) ---------- */
+  .services-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px;
+  }
+  .service {
+    padding: 36px 32px; border: 1px solid var(--rule);
+    border-radius: 4px; background: var(--cream);
+    transition: all .3s ease; cursor: default;
+  }
+  .service:hover {
+    transform: translateY(-4px); border-color: var(--red);
+    box-shadow: 0 20px 40px -20px rgba(15, 27, 45, 0.15);
+  }
+  .service-icon {
+    width: 44px; height: 44px; margin-bottom: 24px;
+    color: var(--red);
+  }
+  .service h3 {
+    font-family: 'Fraunces', serif; font-weight: 450;
+    font-size: 22px; margin-bottom: 12px;
+  }
+  .service p { color: var(--ink-soft); font-size: 15px; }
+
+  /* Coverages list (What We Offer) */
+  .coverages {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border-top: 1px solid var(--rule);
+  }
+  .coverages li {
+    font-family: 'Fraunces', serif;
+    font-weight: 380;
+    font-size: 22px;
+    color: var(--ink);
+    padding: 22px 4px;
+    border-bottom: 1px solid var(--rule);
+    display: flex; align-items: center; gap: 16px;
+    transition: color .2s, padding-left .25s;
+    cursor: default;
+  }
+  .coverages li::before {
+    content: '';
+    width: 8px; height: 8px;
+    background: var(--red);
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: transform .25s;
+  }
+  .coverages li:hover { color: var(--red); padding-left: 8px; }
+  .coverages li:hover::before { transform: scale(1.4); }
+  .coverages li:nth-last-child(-n+3) { border-bottom: none; }
+  @media (max-width: 700px) {
+    .coverages { grid-template-columns: repeat(2, 1fr); }
+    .coverages li:nth-last-child(-n+3) { border-bottom: 1px solid var(--rule); }
+    .coverages li:nth-last-child(-n+2) { border-bottom: none; }
+    .coverages li { font-size: 18px; padding: 18px 4px; }
+  }
+
+  /* ---------- FOUNDERS ---------- */
+  .founders { background: var(--ink); color: var(--cream); }
+  .founders .section-title { color: var(--cream); }
+  .founders .section-title em { color: #FF8A95; }
+  .founders .section-eyebrow { color: #FF8A95; }
+  .founders .section-eyebrow::before { background: #FF8A95; }
+  .founders .section-lede { color: #B8C2D4; }
+  .founder-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 60px; margin-top: 20px;
+  }
+  .founder {
+    padding: 40px; border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%);
+    position: relative;
+  }
+  .founder-mark {
+    font-family: 'Fraunces', serif; font-size: 80px; line-height: 1;
+    color: var(--red); opacity: .25; position: absolute; top: 20px; right: 30px;
+  }
+  .founder h3 {
+    font-family: 'Fraunces', serif; font-weight: 400;
+    font-size: 32px; margin-bottom: 6px;
+  }
+  .founder .role {
+    font-size: 13px; text-transform: uppercase; letter-spacing: .15em;
+    color: #FF8A95; margin-bottom: 24px;
+  }
+  .founder p { color: #B8C2D4; font-size: 16px; }
+
+  /* ---------- QUOTE PULL ---------- */
+  .pullquote { padding: 130px 0; text-align: center; }
+  .pullquote blockquote {
+    font-family: 'Fraunces', serif; font-weight: 300;
+    font-style: italic;
+    font-size: clamp(2rem, 4.5vw, 3.4rem);
+    line-height: 1.18; letter-spacing: -.02em;
+    color: var(--ink); max-width: 940px; margin: 0 auto;
+  }
+  .pullquote blockquote::before { content: '"'; color: var(--red); }
+  .pullquote blockquote::after { content: '"'; color: var(--red); }
+  .pullquote .attribution {
+    margin-top: 36px; font-size: 13px; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--muted);
+  }
+
+  /* ---------- CONTACT ---------- */
+  .contact { background: var(--cream-deep); }
+  .contact-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 80px;
+    align-items: start;
+  }
+  .contact-info dl { display: grid; grid-template-columns: 100px 1fr; gap: 28px 24px; }
+  .contact-info dt {
+    font-size: 12px; font-weight: 600; letter-spacing: .15em;
+    text-transform: uppercase; color: var(--muted); padding-top: 6px;
+  }
+  .contact-info dd { font-size: 17px; color: var(--ink); }
+  .contact-info dd a { border-bottom: 1px solid var(--rule); padding-bottom: 1px; transition: border-color .2s; }
+  .contact-info dd a:hover { border-color: var(--red); color: var(--red); }
+  .contact-info .phone-big {
+    font-family: 'Fraunces', serif; font-size: 30px; color: var(--red); border: none !important;
+  }
+  .spanish-tag {
+    display: inline-block; margin-top: 30px; padding: 8px 16px;
+    background: var(--cream); border-radius: 999px;
+    font-size: 13px; font-weight: 500; color: var(--ink-soft);
+    border: 1px solid var(--rule);
+  }
+  .contact-form {
+    background: var(--cream); padding: 44px;
+    border-radius: 6px; border: 1px solid var(--rule);
+  }
+  .contact-form h3 {
+    font-family: 'Fraunces', serif; font-weight: 400;
+    font-size: 26px; margin-bottom: 28px;
+  }
+  .field { margin-bottom: 22px; }
+  .field label {
+    display: block; font-size: 12px; font-weight: 600; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+  }
+  .field input, .field textarea {
+    width: 100%; padding: 12px 0; border: none;
+    border-bottom: 1.5px solid var(--rule); background: transparent;
+    font-family: inherit; font-size: 16px; color: var(--ink);
+    transition: border-color .2s;
+  }
+  .field input:focus, .field textarea:focus {
+    outline: none; border-bottom-color: var(--red);
+  }
+  .field textarea { resize: vertical; min-height: 90px; }
+  .form-submit {
+    width: 100%; margin-top: 12px;
+    background: var(--ink); color: var(--cream);
+    padding: 16px; border-radius: 999px; border: none;
+    font-family: inherit; font-weight: 600; font-size: 15px;
+    letter-spacing: .02em; cursor: pointer; transition: background .2s;
+  }
+  .form-submit:hover { background: var(--red); }
+
+  /* ---------- FOOTER ---------- */
+  footer.site-footer {
+    padding: 60px 0 40px; border-top: 1px solid var(--rule);
+    background: var(--cream);
+  }
+  .footer-grid {
+    display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 60px;
+    margin-bottom: 50px;
+  }
+  .footer-grid img { height: 50px; width: auto; margin-bottom: 18px; }
+  .footer-grid p { color: var(--muted); font-size: 14px; line-height: 1.7; }
+  .footer-grid h4 {
+    font-size: 12px; font-weight: 600; letter-spacing: .15em;
+    text-transform: uppercase; color: var(--ink); margin-bottom: 16px;
+  }
+  .footer-grid ul { list-style: none; }
+  .footer-grid ul li { margin-bottom: 8px; }
+  .footer-grid ul a { font-size: 14px; color: var(--ink-soft); transition: color .2s; }
+  .footer-grid ul a:hover { color: var(--red); }
+  .footer-bottom {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-top: 30px; border-top: 1px solid var(--rule);
+    font-size: 13px; color: var(--muted);
+  }
+
+  /* ---------- REVEAL ANIMATIONS ---------- */
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity .8s ease, transform .8s ease; }
+  .reveal.in { opacity: 1; transform: translateY(0); }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 900px) {
+    .hero-grid, .contact-grid, .founder-grid { grid-template-columns: 1fr; gap: 60px; }
+    .pillar-grid, .services-grid { grid-template-columns: 1fr; }
+    .footer-grid { grid-template-columns: 1fr; gap: 40px; }
+    .hero-visual { max-width: 100%; aspect-ratio: 4/3; margin: 0 auto; }
+    .hero-stat { left: 16px; bottom: -24px; padding: 16px 20px; }
+    .hero-stat .num { font-size: 30px; }
+    section { padding: 70px 0; }
+    .container { padding: 0 22px; }
+    .nav-inner { padding: 14px 22px; }
+    .nav-menu { display: none; }
+    .nav-menu.open {
+      display: flex; flex-direction: column; position: absolute;
+      top: 100%; left: 0; right: 0; background: var(--cream);
+      padding: 24px 22px; border-top: 1px solid var(--rule); gap: 18px;
+    }
+    .nav-toggle { display: block; }
+    .footer-bottom { flex-direction: column; gap: 12px; text-align: center; }
+    .contact-info dl { grid-template-columns: 1fr; gap: 8px 0; }
+    .contact-info dt { padding-top: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ NAV ═══════════ -->
+<header class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="#top" class="nav-logo"><img src="images/logo.png" alt="360 Risk Management Associates"></a>
+    <nav>
+      <ul class="nav-menu" id="nav-menu">
+        <li><a href="#top">Home</a></li>
+        <li><a href="#who">Who We Are</a></li>
+        <li><a href="#offer">What We Offer</a></li>
+        <li><a href="#contact">Contact / Claims</a></li>
+      </ul>
+    </nav>
+    <a href="tel:+12035955080" class="nav-cta">(203) 595-5080</a>
+    <button class="nav-toggle" aria-label="Menu" id="nav-toggle">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<!-- ═══════════ HERO ═══════════ -->
+<section class="hero" id="top">
+  <div class="container">
+    <div class="hero-grid">
+      <div class="reveal in">
+        <div class="hero-eyebrow">Assessing Risk &amp; Protecting Assets · Stamford, CT</div>
+        <h1>Pay For Protection,<br><em>Not Advertising.</em></h1>
+        <p class="lede">We are here to help you because we are independent brokers. You are not stuck paying higher premiums for the Super Bowl advertising of one of the big-box insurance carriers and their one-shop-fits-all approach. We shop your needs to many different carriers to find the best coverage plan at the best price — at no added cost to you.</p>
+        <div class="hero-ctas">
+          <a href="#contact" class="btn btn-primary">
+            Get Covered
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7h12m-5-5l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <a href="tel:+12035955080" class="btn btn-secondary">
+            Or call (203) 595-5080
+          </a>
+        </div>
+      </div>
+      <div class="hero-visual reveal">
+        <img src="images/hero-bg.jpg" alt="Family protected by 360 Risk Management Associates">
+        <div class="hero-stat">
+          <div class="num">40+ yrs</div>
+          <div class="lbl">Combined experience</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ ABOVE & BEYOND ═══════════ -->
+<section class="pillars">
+  <div class="container">
+    <div class="reveal" style="max-width: 820px;">
+      <div class="section-eyebrow">Quality Service, Year-Round</div>
+      <h2 class="section-title">360 Risk Management Associates goes <em>above and beyond</em>, providing quality service throughout the year.</h2>
+      <p style="font-size: 18px; color: var(--ink-soft); margin-top: 8px;">We are not on the insurance carrier's payroll. They are happy to pay us for the business we write since it is a fraction of the cost that the big-box insurance carriers pay in payroll and advertising. We truly represent your best interests — without any cost to you.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ WHAT WE OFFER ═══════════ -->
+<section id="offer">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-eyebrow">What We Offer</div>
+      <h2 class="section-title">Providing the best possible value and service to you is important. You work hard for your money. There is no need to <em>overpay for inferior insurance.</em></h2>
+    </div>
+
+    <div class="reveal" style="margin-top: 70px; max-width: 820px;">
+      <h3 style="font-family: 'Fraunces', serif; font-weight: 450; font-size: 28px; margin-bottom: 20px;">Increase Value, Not Cost</h3>
+      <p style="font-size: 17px; color: var(--ink-soft); margin-bottom: 18px;">You deserve to understand the product that you are purchasing and the coverage that it provides. While some brokers only provide quotes, we provide service, advice, and education. We encourage open communication and provide a comprehensive explanation of the coverages provided and the reason for those coverages. You will make an informed choice about the coverages contained in your policy.</p>
+      <p style="font-size: 17px; color: var(--ink-soft);">The educational materials we provide will help you understand your insurance needs and gaps. Helping you understand the coverages that are available — and make educated decisions about which coverages are right for you — allows you to take control of your insurance costs and gaps.</p>
+    </div>
+
+    <div class="reveal" style="margin-top: 80px;">
+      <div class="section-eyebrow" style="margin-bottom: 28px;">Coverages Available</div>
+      <ul class="coverages">
+        <li>Home</li>
+        <li>Auto</li>
+        <li>Renters</li>
+        <li>Flood</li>
+        <li>Umbrella</li>
+        <li>Valuable Articles</li>
+        <li>Life</li>
+        <li>Boat</li>
+        <li>Motorcycle</li>
+        <li>Disability</li>
+        <li>Long Term Care</li>
+        <li>Business Insurance</li>
+        <li>Workers' Comp</li>
+        <li>Cyber Liability</li>
+        <li>And many more</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ FOUNDERS ═══════════ -->
+<section class="founders" id="who">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-eyebrow">Who We Are</div>
+      <h2 class="section-title">An independent insurance agency built on a <em>unique combination of skills</em>.</h2>
+      <p class="section-lede">360 Risk Management Associates works with a wide variety of carriers in order to provide you with the best possible coverage at the best possible price. Founders Bob Judge and Jason Jaworoski created 360 RMA in order to bring a unique set of skills to the insurance brokerage field.</p>
+    </div>
+    <div class="founder-grid reveal">
+      <div class="founder">
+        <div class="founder-mark">B</div>
+        <h3>Bob Judge</h3>
+        <div class="role">Founding Partner · Attorney</div>
+        <p>Bob is a licensed attorney with over 25 years of commercial litigation experience. He understands the perils you might face and how to properly prepare for the offset of those risks.</p>
+      </div>
+      <div class="founder">
+        <div class="founder-mark">J</div>
+        <h3>Jason Jaworoski</h3>
+        <div class="role">Founding Partner · Insurance Consultant</div>
+        <p>Jason is a certified insurance consultant with over 15 years of experience. He has worked in all facets of the insurance industry and has a comprehensive understanding of risk assessment and insurance protection.</p>
+      </div>
+    </div>
+
+    <p class="reveal" style="max-width: 820px; margin-top: 50px; font-family: 'Fraunces', serif; font-style: italic; font-weight: 350; font-size: 22px; line-height: 1.45; color: #B8C2D4;">
+      Collectively, we bring our clients expertise that few insurance agencies can provide. It's not about us simply placing insurance for you — it's about us analyzing your unique situation and ensuring that you have the most competitive and comprehensive plans that fit within your budget.
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════ PULL QUOTE ═══════════ -->
+<section class="pullquote">
+  <div class="container">
+    <blockquote class="reveal">When was the last time you spoke to your broker?</blockquote>
+    <div class="attribution reveal">Your broker shouldn't stop at obtaining competitive quotes or handling claims — you should expect more.</div>
+  </div>
+</section>
+
+<!-- ═══════════ CONTACT ═══════════ -->
+<section class="contact" id="contact">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-eyebrow">Contact &amp; Claims</div>
+      <h2 class="section-title">Let's talk about <em>your coverage</em>.</h2>
+    </div>
+    <div class="contact-grid">
+      <div class="contact-info reveal">
+        <dl>
+          <dt>Phone</dt>
+          <dd><a class="phone-big" href="tel:+12035955080">(203) 595-5080</a></dd>
+          <dt>Email</dt>
+          <dd><a href="mailto:bobj@360rma.com">bobj@360rma.com</a></dd>
+          <dt>Office</dt>
+          <dd>2777 Summer Street, 6th Floor<br>Stamford, CT 06903<br>
+            <a href="https://maps.google.com/?q=2777+Summer+Street+Stamford+CT" target="_blank" rel="noopener" style="font-size:14px;">View on Google Maps →</a>
+          </dd>
+          <dt>Hours</dt>
+          <dd>Monday – Friday<br>8:00 AM – 5:00 PM<br><span style="color:var(--muted); font-size:14px;">(Additional hours upon request)</span></dd>
+        </dl>
+        <span class="spanish-tag">🌐 Spanish speaking available</span>
+      </div>
+      <form class="contact-form reveal" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+        <h3>Send us a message</h3>
+        <div class="field"><label for="n">Name</label><input id="n" name="name" type="text" required></div>
+        <div class="field"><label for="p">Phone</label><input id="p" name="phone" type="tel" required></div>
+        <div class="field"><label for="e">Email</label><input id="e" name="email" type="email" required></div>
+        <div class="field"><label for="m">How can we help?</label><textarea id="m" name="message" rows="4" required></textarea></div>
+        <button type="submit" class="form-submit">Request a Quote →</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ FOOTER ═══════════ -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <img src="images/logo.png" alt="360 Risk Management Associates">
+        <p>Independent insurance brokers based in Stamford, Connecticut. Attorney-led risk management for individuals, families, and businesses across the tri-state area.</p>
+      </div>
+      <div>
+        <h4>Navigate</h4>
+        <ul>
+          <li><a href="#top">Home</a></li>
+          <li><a href="#who">Who We Are</a></li>
+          <li><a href="#offer">What We Offer</a></li>
+          <li><a href="#contact">Contact / Claims</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Reach Us</h4>
+        <ul>
+          <li><a href="tel:+12035955080">(203) 595-5080</a></li>
+          <li><a href="mailto:bobj@360rma.com">bobj@360rma.com</a></li>
+          <li>2777 Summer St, 6th Fl<br>Stamford, CT 06903</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div>© <span id="year">2026</span> 360 Risk Management Associates, LLC · All rights reserved</div>
+      <div>Stamford, CT · Licensed Insurance Brokers</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Sticky nav border on scroll
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 10);
+  });
+  // Mobile menu
+  const toggle = document.getElementById('nav-toggle');
+  const menu = document.getElementById('nav-menu');
+  toggle?.addEventListener('click', () => menu.classList.toggle('open'));
+  menu?.querySelectorAll('a').forEach(a => a.addEventListener('click', () => menu.classList.remove('open')));
+  // Reveal on scroll
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+  // Year
+  document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+
+</body>
+</html>
