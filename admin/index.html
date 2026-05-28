@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Site Editor · 360 Risk Management Associates</title>
+<link rel="icon" type="image/png" href="../images/logo.png">
+<style>
+  :root{
+    --cream:#F6F1E9; --cream-deep:#EBE3D2; --ink:#0F1B2D; --ink-soft:#2B3A52;
+    --muted:#6B7384; --rule:#DDD3C0; --red:#D7253A; --red-deep:#A81B2C; --ok:#1B7A3D;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Manrope',system-ui,-apple-system,sans-serif;color:var(--ink);background:var(--cream);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  a{color:var(--red);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:860px;margin:0 auto;padding:0 22px}
+  .hidden{display:none !important}
+
+  /* Buttons */
+  .btn{display:inline-flex;align-items:center;gap:10px;border:none;border-radius:999px;
+    font:inherit;font-weight:600;font-size:15px;padding:13px 22px;cursor:pointer;transition:all .18s ease}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn-primary{background:var(--ink);color:var(--cream)}
+  .btn-primary:hover:not(:disabled){background:var(--red)}
+  .btn-ghost{background:transparent;color:var(--ink-soft);border:1.5px solid var(--rule)}
+  .btn-ghost:hover{border-color:var(--red);color:var(--red)}
+  .btn-danger{background:transparent;color:var(--red);border:1.5px solid var(--rule)}
+  .btn-danger:hover{background:var(--red);color:#fff;border-color:var(--red)}
+
+  /* Login */
+  .center{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 22px}
+  .card{background:#fff;border:1px solid var(--rule);border-radius:12px;padding:44px;max-width:480px;width:100%;
+    box-shadow:0 20px 50px -28px rgba(15,27,45,.35)}
+  .card img.logo{height:46px;margin-bottom:26px}
+  .card h1{font-size:24px;font-weight:700;letter-spacing:-.01em;margin-bottom:8px}
+  .card p.sub{color:var(--muted);font-size:15px;margin-bottom:28px}
+  .gh-btn{width:100%;justify-content:center;padding:15px}
+  .notice{font-size:13.5px;border-radius:8px;padding:12px 14px;margin-bottom:20px;border:1px solid}
+  .notice-warn{background:#FCF3D9;border-color:#E8D08A;color:#6b540c}
+  .notice-err{background:#FCE6E9;border-color:#E9A7B0;color:#8a1422}
+  .notice-ok{background:#E6F4EC;border-color:#A6D6BA;color:#15662f}
+  details.fallback{margin-top:26px;border-top:1px solid var(--rule);padding-top:18px}
+  details.fallback summary{cursor:pointer;color:var(--muted);font-size:13px;font-weight:600;letter-spacing:.02em}
+  details.fallback summary:hover{color:var(--ink)}
+  .pat-row{margin-top:16px}
+  label.fld{display:block;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+  input[type=text],input[type=password],textarea{width:100%;font:inherit;font-size:15px;color:var(--ink);background:#fff;
+    border:1.5px solid var(--rule);border-radius:8px;padding:11px 13px;transition:border-color .18s}
+  input:focus,textarea:focus{outline:none;border-color:var(--red)}
+  textarea{resize:vertical;min-height:74px;line-height:1.5}
+  .check{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13.5px;color:var(--ink-soft)}
+
+  /* Editor */
+  header.bar{position:sticky;top:0;z-index:30;background:rgba(246,241,233,.92);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--rule)}
+  .bar-inner{max-width:860px;margin:0 auto;padding:14px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .bar-inner img{height:32px}
+  .bar-title{font-weight:700;font-size:16px;margin-right:auto}
+  .who{font-size:13px;color:var(--muted)}
+  .who b{color:var(--ink)}
+  .dirtydot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-left:6px;vertical-align:middle}
+  .banner{background:var(--cream-deep);border-bottom:1px solid var(--rule);font-size:13.5px;color:var(--ink-soft)}
+  .banner .wrap{padding:10px 22px}
+  main{padding:34px 0 140px}
+  .sec{margin-bottom:14px;border:1px solid var(--rule);border-radius:12px;background:#fff;overflow:hidden}
+  .sec>summary{cursor:pointer;list-style:none;padding:18px 22px;font-family:'Fraunces',Georgia,serif;font-size:20px;font-weight:600;
+    display:flex;align-items:center;gap:10px;background:#fff}
+  .sec>summary::-webkit-details-marker{display:none}
+  .sec>summary::before{content:'▸';color:var(--red);font-size:14px;transition:transform .15s}
+  .sec[open]>summary::before{transform:rotate(90deg)}
+  .sec .body{padding:6px 22px 22px}
+  .field{padding:16px 0;border-top:1px solid var(--cream-deep)}
+  .field:first-child{border-top:none}
+  .field .hint{font-size:12px;color:var(--muted);margin-top:6px}
+  .field.changed label.fld{color:var(--red)}
+  .field.missing{opacity:.6}
+  .field.missing .warn{font-size:12px;color:var(--red-deep);margin-top:6px}
+
+  /* Sticky action footer */
+  .actionbar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:#fff;border-top:1px solid var(--rule);
+    box-shadow:0 -10px 30px -22px rgba(15,27,45,.4)}
+  .actionbar .wrap{display:flex;align-items:center;gap:14px;padding:14px 22px}
+  .actionbar .status{margin-right:auto;font-size:14px;color:var(--ink-soft)}
+
+  /* Modal */
+  .overlay{position:fixed;inset:0;z-index:60;background:rgba(15,27,45,.45);display:flex;align-items:center;justify-content:center;padding:24px}
+  .modal{background:#fff;border-radius:12px;max-width:680px;width:100%;max-height:86vh;display:flex;flex-direction:column;overflow:hidden}
+  .modal h2{font-size:20px;padding:22px 24px 6px}
+  .modal .msub{color:var(--muted);font-size:14px;padding:0 24px 14px}
+  .modal .scroll{overflow:auto;padding:0 24px;border-top:1px solid var(--rule)}
+  .modal .foot{display:flex;gap:12px;justify-content:flex-end;padding:18px 24px;border-top:1px solid var(--rule)}
+  .diff{padding:14px 0;border-bottom:1px solid var(--cream-deep)}
+  .diff .k{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  .diff .row{font-size:14px;line-height:1.5;white-space:pre-wrap;word-break:break-word;border-radius:6px;padding:7px 10px;margin:3px 0}
+  .diff .before{background:#FCE6E9;color:#7d1320;text-decoration:line-through;text-decoration-color:#d99}
+  .diff .after{background:#E6F4EC;color:#14532b}
+  .cmsg{margin:8px 0 4px}
+  .spinner{width:34px;height:34px;border:3px solid var(--rule);border-top-color:var(--red);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN SCREEN ============ -->
+<section id="screen-login" class="center hidden">
+  <div class="card">
+    <img class="logo" src="../images/logo.png" alt="360 Risk Management Associates">
+    <h1>Site Editor</h1>
+    <p class="sub">Sign in to update the content on 360rma.com.</p>
+
+    <div id="login-notice"></div>
+
+    <button id="btn-oauth" class="btn btn-primary gh-btn">
+      <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg>
+      Log in with GitHub
+    </button>
+
+    <details class="fallback" id="pat-fallback">
+      <summary>Maintainer access (personal access token)</summary>
+      <div class="pat-row">
+        <label class="fld" for="pat-input">Fine-grained or classic PAT</label>
+        <input type="password" id="pat-input" placeholder="github_pat_… / ghp_…" autocomplete="off" spellcheck="false">
+        <label class="check"><input type="checkbox" id="pat-remember"> Remember on this device</label>
+        <button id="btn-pat" class="btn btn-ghost" style="margin-top:14px;width:100%;justify-content:center">Use this token</button>
+        <p class="hint" style="margin-top:10px">For the maintainer only. Token needs <code>contents:read &amp; write</code> on this repo (fine-grained) or <code>public_repo</code> (classic). Stored locally in your browser — never sent anywhere except GitHub.</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ============ LOADING SCREEN ============ -->
+<section id="screen-loading" class="center hidden">
+  <div style="text-align:center">
+    <div class="spinner"></div>
+    <p id="loading-text" style="color:var(--muted)">Loading…</p>
+  </div>
+</section>
+
+<!-- ============ EDITOR SCREEN ============ -->
+<section id="screen-editor" class="hidden">
+  <header class="bar">
+    <div class="bar-inner">
+      <img src="../images/logo.png" alt="">
+      <span class="bar-title">Site Editor</span>
+      <span class="who" id="who"></span>
+      <button id="btn-logout" class="btn btn-danger" style="padding:9px 16px;font-size:13px">Log out</button>
+    </div>
+  </header>
+  <div class="banner"><div class="wrap">Editing <b id="b-path">index.html</b> on branch <b id="b-branch">main</b>. Publishing commits directly to your live site.</div></div>
+
+  <main>
+    <div class="wrap">
+      <div id="editor-notice"></div>
+      <form id="form"></form>
+    </div>
+  </main>
+
+  <div class="actionbar">
+    <div class="wrap">
+      <span class="status" id="dirty-status">No unsaved changes</span>
+      <button id="btn-discard" class="btn btn-ghost" disabled>Discard changes</button>
+      <button id="btn-review" class="btn btn-primary" disabled>Review &amp; publish</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MODAL ROOT ============ -->
+<div id="modal-root"></div>
+
+<script>
+/* ============================================================================
+   CONFIG  —  the maintainer fills these in (see admin/README.md)
+   ----------------------------------------------------------------------------
+   clientId  : GitHub OAuth App Client ID (public; safe to commit)
+   workerUrl : deployed Cloudflare Worker URL (does the code->token exchange)
+   The CLIENT SECRET is NEVER here — it lives only in the Worker.
+   ========================================================================== */
+const CONFIG = {
+  owner:       "alexbutson",
+  repo:        "360rma-site",
+  branch:      "main",
+  path:        "index.html",
+  scope:       "public_repo",                 // public repo -> narrow scope
+  redirectUri: "https://alexbutson.github.io/360rma-site/admin/",
+  clientId:    "TODO_PASTE_GITHUB_OAUTH_CLIENT_ID",
+  workerUrl:   "TODO_PASTE_DEPLOYED_WORKER_URL",
+};
+
+/* ============================================================================
+   FIELD MAP  —  mirrors the <!--e:key-->…<!--/e:key--> markers in index.html
+   type: text | textarea | html | list
+   ========================================================================== */
+const SECTIONS = ["Hero","Above & Beyond","What We Offer","Who We Are","Pull Quote","Contact"];
+const FIELDS = [
+  {key:"hero_eyebrow",          section:"Hero", label:"Eyebrow (label above headline)", type:"text"},
+  {key:"hero_title_1",          section:"Hero", label:"Headline — line 1", type:"text"},
+  {key:"hero_title_em",         section:"Hero", label:"Headline — line 2 (red italic)", type:"text"},
+  {key:"hero_lede",             section:"Hero", label:"Intro paragraph", type:"textarea"},
+  {key:"hero_cta_primary",      section:"Hero", label:"Primary button label", type:"text"},
+  {key:"hero_cta_secondary",    section:"Hero", label:"Secondary button label", type:"text"},
+  {key:"hero_stat_num",         section:"Hero", label:"Stat number", type:"text"},
+  {key:"hero_stat_label",       section:"Hero", label:"Stat label", type:"text"},
+
+  {key:"ab_eyebrow",            section:"Above & Beyond", label:"Eyebrow", type:"text"},
+  {key:"ab_title",              section:"Above & Beyond", label:"Heading", type:"html"},
+  {key:"ab_body",               section:"Above & Beyond", label:"Paragraph", type:"textarea"},
+
+  {key:"offer_eyebrow",         section:"What We Offer", label:"Eyebrow", type:"text"},
+  {key:"offer_title",           section:"What We Offer", label:"Heading", type:"html"},
+  {key:"offer_subhead",         section:"What We Offer", label:"Subheading", type:"text"},
+  {key:"offer_body1",           section:"What We Offer", label:"Paragraph 1", type:"textarea"},
+  {key:"offer_body2",           section:"What We Offer", label:"Paragraph 2", type:"textarea"},
+  {key:"offer_coverages_eyebrow",section:"What We Offer", label:"Coverages — small label", type:"text"},
+  {key:"offer_coverages",       section:"What We Offer", label:"Coverages list (one per line)", type:"list"},
+
+  {key:"who_eyebrow",           section:"Who We Are", label:"Eyebrow", type:"text"},
+  {key:"who_title",             section:"Who We Are", label:"Heading", type:"html"},
+  {key:"who_lede",              section:"Who We Are", label:"Intro paragraph", type:"textarea"},
+  {key:"founder1_name",         section:"Who We Are", label:"Founder 1 — name", type:"text"},
+  {key:"founder1_role",         section:"Who We Are", label:"Founder 1 — role", type:"text"},
+  {key:"founder1_bio",          section:"Who We Are", label:"Founder 1 — bio", type:"textarea"},
+  {key:"founder2_name",         section:"Who We Are", label:"Founder 2 — name", type:"text"},
+  {key:"founder2_role",         section:"Who We Are", label:"Founder 2 — role", type:"text"},
+  {key:"founder2_bio",          section:"Who We Are", label:"Founder 2 — bio", type:"textarea"},
+  {key:"who_closing",           section:"Who We Are", label:"Closing statement", type:"textarea"},
+
+  {key:"pullquote_text",        section:"Pull Quote", label:"Quote", type:"textarea"},
+  {key:"pullquote_attribution", section:"Pull Quote", label:"Attribution / sub-line", type:"textarea"},
+
+  {key:"contact_eyebrow",       section:"Contact", label:"Eyebrow", type:"text"},
+  {key:"contact_title",         section:"Contact", label:"Heading", type:"html"},
+  {key:"contact_hours",         section:"Contact", label:"Office hours (HTML: <br> allowed)", type:"html"},
+];
+const FIELD_BY_KEY = Object.fromEntries(FIELDS.map(f => [f.key, f]));
+
+/* ============================================================================
+   TOKEN STORAGE
+   OAuth token -> sessionStorage (per task: never persisted, re-login each time).
+   PAT (maintainer) -> sessionStorage, or localStorage if "remember" is checked.
+   ========================================================================== */
+const TOKEN_KEY = "rma_gh_token", KIND_KEY = "rma_gh_kind";
+function storeToken(token, kind, remember){
+  clearToken();
+  const store = remember ? localStorage : sessionStorage;
+  store.setItem(TOKEN_KEY, token);
+  store.setItem(KIND_KEY, kind);
+}
+function currentToken(){ return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY); }
+function currentKind(){ return sessionStorage.getItem(KIND_KEY) || localStorage.getItem(KIND_KEY); }
+function clearToken(){ [sessionStorage, localStorage].forEach(s => { s.removeItem(TOKEN_KEY); s.removeItem(KIND_KEY); }); }
+
+/* ============================================================================
+   SMALL HELPERS
+   ========================================================================== */
+const $ = sel => document.querySelector(sel);
+const isPlaceholder = v => !v || String(v).startsWith("TODO");
+const oauthReady = () => !isPlaceholder(CONFIG.clientId) && !isPlaceholder(CONFIG.workerUrl);
+
+function showScreen(id){
+  ["screen-login","screen-loading","screen-editor"].forEach(s => $("#"+s).classList.toggle("hidden", s !== id));
+}
+function setLoading(text){ $("#loading-text").textContent = text || "Loading…"; showScreen("screen-loading"); }
+function notice(elId, kind, html){
+  const el = $("#"+elId);
+  if(!html){ el.innerHTML = ""; return; }
+  el.innerHTML = `<div class="notice notice-${kind}">${html}</div>`;
+}
+
+// Entity encode/decode for plain-text fields (keeps index.html valid + round-trips).
+function enc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function dec(s){ return s.replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,'"').replace(/&#0?39;/g,"'").replace(/&amp;/g,"&"); }
+
+// UTF-8 safe base64 (GitHub Contents API wants base64).
+function toB64(str){
+  const bytes = new TextEncoder().encode(str);
+  let bin = "", chunk = 0x8000;
+  for(let i=0;i<bytes.length;i+=chunk) bin += String.fromCharCode.apply(null, bytes.subarray(i,i+chunk));
+  return btoa(bin);
+}
+function fromB64(b64){
+  const bin = atob(b64.replace(/\s/g,""));
+  const bytes = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+
+// Marker slicing — the heart of the byte-exact round-trip.
+function getBetween(text, key){
+  const open = `<!--e:${key}-->`, close = `<!--/e:${key}-->`;
+  const i = text.indexOf(open); if(i < 0) return null;
+  const s = i + open.length;
+  const j = text.indexOf(close, s); if(j < 0) return null;
+  return text.slice(s, j);
+}
+function setBetween(text, key, value){
+  const open = `<!--e:${key}-->`, close = `<!--/e:${key}-->`;
+  const i = text.indexOf(open); if(i < 0) return text;
+  const s = i + open.length;
+  const j = text.indexOf(close, s); if(j < 0) return text;
+  return text.slice(0, s) + value + text.slice(j);
+}
+
+// raw inner HTML (between markers)  ->  value shown in the form input
+function rawToDisplay(field, raw){
+  if(field.type === "list"){
+    return [...raw.matchAll(/<li>([\s\S]*?)<\/li>/g)].map(m => dec(m[1].trim())).join("\n");
+  }
+  if(field.type === "html") return raw;          // keep tags as-is
+  return dec(raw);                                // text / textarea
+}
+// value from the form input  ->  raw inner HTML to write back between markers
+function displayToRaw(field, val){
+  if(field.type === "list"){
+    const items = val.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    return items.map(it => `\n        <li>${enc(it)}</li>`).join("") + "\n      ";
+  }
+  if(field.type === "html") return val;
+  return enc(val);
+}
+
+/* ============================================================================
+   GITHUB API
+   ========================================================================== */
+async function ghFetch(path, opts={}){
+  const headers = Object.assign({
+    "Accept": "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+  }, opts.headers || {});
+  const token = currentToken();
+  if(token) headers["Authorization"] = "token " + token;
+  return fetch("https://api.github.com" + path, Object.assign({}, opts, {headers}));
+}
+
+/* ============================================================================
+   EDITOR STATE
+   ========================================================================== */
+const state = {
+  sha: null,           // git blob sha of index.html at load time (for conflict detection)
+  originalText: "",    // full index.html as loaded
+  original: {},        // key -> display value at load
+  inputs: {},          // key -> textarea/input element
+  missing: {},         // key -> true if marker not found
+};
+
+/* ---- AUTH: OAuth ---- */
+function startOAuth(){
+  if(!oauthReady()){
+    notice("login-notice","warn","<b>OAuth isn’t configured yet.</b> Finish the one-time setup in <code>admin/README.md</code>, or use <b>Maintainer access</b> below for now.");
+    $("#pat-fallback").open = true;
+    return;
+  }
+  const stateTok = (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2)) + "." + Date.now();
+  sessionStorage.setItem("rma_oauth_state", stateTok);
+  const u = new URL("https://github.com/login/oauth/authorize");
+  u.searchParams.set("client_id", CONFIG.clientId);
+  u.searchParams.set("redirect_uri", CONFIG.redirectUri);
+  u.searchParams.set("scope", CONFIG.scope);
+  u.searchParams.set("state", stateTok);
+  u.searchParams.set("allow_signup", "false");
+  location.assign(u.toString());
+}
+
+async function handleOAuthCallback(code, returnedState){
+  const expected = sessionStorage.getItem("rma_oauth_state");
+  sessionStorage.removeItem("rma_oauth_state");
+  // Always strip the code/state from the URL so a refresh can't replay it.
+  history.replaceState({}, "", CONFIG.redirectUri);
+  if(!expected || returnedState !== expected){
+    showScreen("screen-login");
+    notice("login-notice","err","Login could not be verified (state mismatch). Please try again.");
+    return;
+  }
+  setLoading("Completing sign-in…");
+  try{
+    const resp = await fetch(CONFIG.workerUrl, {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ code, redirect_uri: CONFIG.redirectUri }),
+    });
+    const data = await resp.json().catch(()=> ({}));
+    if(!resp.ok || !data.access_token){
+      showScreen("screen-login");
+      notice("login-notice","err","Sign-in failed: " + (data.error_description || data.error || ("HTTP "+resp.status)) + ".");
+      return;
+    }
+    storeToken(data.access_token, "oauth", false);   // sessionStorage only
+    await startEditor();
+  }catch(e){
+    showScreen("screen-login");
+    notice("login-notice","err","Could not reach the sign-in service. " + e.message);
+  }
+}
+
+function usePat(){
+  const token = $("#pat-input").value.trim();
+  if(!token){ $("#pat-input").focus(); return; }
+  storeToken(token, "pat", $("#pat-remember").checked);
+  startEditor();
+}
+
+function logout(){
+  if(dirtyKeys().length && !confirm("You have unsaved changes. Log out and lose them?")) return;
+  clearToken();
+  location.assign(CONFIG.redirectUri);
+}
+
+/* ---- EDITOR: load + render ---- */
+async function startEditor(){
+  setLoading("Loading site content…");
+  try{
+    // who am I (nice-to-have; also validates the token)
+    let login = "";
+    try{ const u = await ghFetch("/user"); if(u.ok){ login = (await u.json()).login || ""; } }catch{}
+
+    const resp = await ghFetch(`/repos/${CONFIG.owner}/${CONFIG.repo}/contents/${CONFIG.path}?ref=${CONFIG.branch}`);
+    if(resp.status === 401){ clearToken(); showScreen("screen-login"); notice("login-notice","err","Your sign-in is no longer valid. Please log in again."); return; }
+    if(resp.status === 404){ throw new Error("index.html not found in the repo/branch."); }
+    if(!resp.ok){ throw new Error("GitHub said HTTP " + resp.status + "."); }
+    const meta = await resp.json();
+    state.sha = meta.sha;
+    state.originalText = fromB64(meta.content);
+
+    // parse fields out of the markers
+    let missingCount = 0;
+    for(const f of FIELDS){
+      const raw = getBetween(state.originalText, f.key);
+      if(raw === null){ state.missing[f.key] = true; state.original[f.key] = ""; missingCount++; }
+      else { state.missing[f.key] = false; state.original[f.key] = rawToDisplay(f, raw); }
+    }
+
+    $("#who").innerHTML = login ? `Signed in as <b>${enc(login)}</b> · ${currentKind()==="pat"?"token":"GitHub"}` : "";
+    $("#b-path").textContent = CONFIG.path;
+    $("#b-branch").textContent = CONFIG.branch;
+    notice("editor-notice", missingCount ? "warn" : "", missingCount
+      ? `${missingCount} field(s) couldn’t be found in index.html. Make sure the latest <code>index.html</code> (with edit markers) is pushed to GitHub.` : "");
+
+    renderForm();
+    refreshDirty();
+    showScreen("screen-editor");
+  }catch(e){
+    showScreen("screen-login");
+    notice("login-notice","err","Couldn’t load the site content: " + e.message);
+  }
+}
+
+function renderForm(){
+  const form = $("#form");
+  form.innerHTML = "";
+  state.inputs = {};
+  for(const section of SECTIONS){
+    const det = document.createElement("details");
+    det.className = "sec"; det.open = true;
+    const sum = document.createElement("summary");
+    sum.textContent = section;
+    det.appendChild(sum);
+    const body = document.createElement("div");
+    body.className = "body";
+
+    for(const f of FIELDS.filter(x => x.section === section)){
+      const wrap = document.createElement("div");
+      wrap.className = "field" + (state.missing[f.key] ? " missing" : "");
+      wrap.dataset.key = f.key;
+
+      const lab = document.createElement("label");
+      lab.className = "fld"; lab.textContent = f.label; lab.htmlFor = "in_" + f.key;
+      wrap.appendChild(lab);
+
+      let input;
+      if(f.type === "text"){
+        input = document.createElement("input");
+        input.type = "text";
+      }else{
+        input = document.createElement("textarea");
+        if(f.type === "list") input.rows = Math.max(4, state.original[f.key].split("\n").length);
+        else input.rows = f.type === "textarea" ? 3 : 2;
+      }
+      input.id = "in_" + f.key;
+      input.value = state.original[f.key] || "";
+      if(state.missing[f.key]) input.disabled = true;
+      input.addEventListener("input", () => onFieldInput(f.key));
+      wrap.appendChild(input);
+      state.inputs[f.key] = input;
+
+      if(state.missing[f.key]){
+        const w = document.createElement("div"); w.className = "warn";
+        w.textContent = "Not found in index.html (marker missing).";
+        wrap.appendChild(w);
+      }else if(f.type === "html"){
+        const h = document.createElement("div"); h.className = "hint";
+        h.innerHTML = "HTML allowed — e.g. <code>&lt;em&gt;…&lt;/em&gt;</code> shows as red italic.";
+        wrap.appendChild(h);
+      }else if(f.type === "list"){
+        const h = document.createElement("div"); h.className = "hint";
+        h.textContent = "One item per line.";
+        wrap.appendChild(h);
+      }
+      body.appendChild(wrap);
+    }
+    det.appendChild(body);
+    form.appendChild(det);
+  }
+}
+
+/* ---- DIRTY TRACKING ---- */
+function isDirty(key){
+  if(state.missing[key]) return false;
+  return state.inputs[key].value !== state.original[key];
+}
+function dirtyKeys(){ return FIELDS.map(f=>f.key).filter(isDirty); }
+
+function onFieldInput(key){
+  const wrap = document.querySelector(`.field[data-key="${key}"]`);
+  if(wrap) wrap.classList.toggle("changed", isDirty(key));
+  refreshDirty();
+}
+function refreshDirty(){
+  const n = dirtyKeys().length;
+  $("#dirty-status").innerHTML = n ? `${n} unsaved change${n>1?"s":""}<span class="dirtydot"></span>` : "No unsaved changes";
+  $("#btn-review").disabled = n === 0;
+  $("#btn-discard").disabled = n === 0;
+}
+
+function discardChanges(){
+  if(!confirm("Discard all unsaved changes?")) return;
+  for(const f of FIELDS){
+    if(state.missing[f.key]) continue;
+    state.inputs[f.key].value = state.original[f.key];
+    const wrap = document.querySelector(`.field[data-key="${f.key}"]`);
+    if(wrap) wrap.classList.remove("changed");
+  }
+  refreshDirty();
+}
+
+/* ---- REVIEW + PUBLISH ---- */
+function openReview(){
+  const keys = dirtyKeys();
+  if(!keys.length) return;
+  const rows = keys.map(k=>{
+    const f = FIELD_BY_KEY[k];
+    return `<div class="diff"><div class="k">${enc(f.section)} — ${enc(f.label)}</div>
+      <div class="row before">${enc(state.original[k]) || "<em>(empty)</em>"}</div>
+      <div class="row after">${enc(state.inputs[k].value) || "<em>(empty)</em>"}</div></div>`;
+  }).join("");
+  const html = `<div class="overlay" id="ov"><div class="modal">
+    <h2>Review changes</h2>
+    <div class="msub">${keys.length} field${keys.length>1?"s":""} will be updated and published to your live site.</div>
+    <div class="scroll">${rows}</div>
+    <div style="padding:14px 24px 0">
+      <label class="fld" for="commit-msg">Change note (saved in history)</label>
+      <input type="text" id="commit-msg" class="cmsg" value="Update site content via editor">
+    </div>
+    <div class="foot">
+      <button class="btn btn-ghost" id="ov-cancel">Cancel</button>
+      <button class="btn btn-primary" id="ov-publish">Publish now</button>
+    </div>
+  </div></div>`;
+  $("#modal-root").innerHTML = html;
+  $("#ov-cancel").onclick = closeModal;
+  $("#ov-publish").onclick = publish;
+}
+function closeModal(){ $("#modal-root").innerHTML = ""; }
+
+async function publish(){
+  const keys = dirtyKeys();
+  const msg = ($("#commit-msg").value || "Update site content via editor").trim();
+  const btn = $("#ov-publish"); btn.disabled = true; btn.textContent = "Publishing…";
+
+  // Build the new file by touching ONLY changed fields — every other byte is preserved.
+  let newText = state.originalText;
+  for(const k of keys) newText = setBetween(newText, k, displayToRaw(FIELD_BY_KEY[k], state.inputs[k].value));
+
+  try{
+    const resp = await ghFetch(`/repos/${CONFIG.owner}/${CONFIG.repo}/contents/${CONFIG.path}`, {
+      method: "PUT",
+      body: JSON.stringify({ message: msg, content: toB64(newText), sha: state.sha, branch: CONFIG.branch }),
+    });
+
+    if(resp.status === 409 || resp.status === 422){
+      closeModal(); showConflict(); return;
+    }
+    if(resp.status === 401){
+      clearToken(); showScreen("screen-login");
+      notice("login-notice","err","Your sign-in expired during publish. Log in again — your text is safe if you didn’t reload."); return;
+    }
+    if(!resp.ok){
+      const err = await resp.json().catch(()=> ({}));
+      btn.disabled = false; btn.textContent = "Publish now";
+      alert("Publish failed (HTTP " + resp.status + "): " + (err.message || "unknown error"));
+      return;
+    }
+
+    const data = await resp.json();
+    // success: adopt the new content as the baseline
+    state.originalText = newText;
+    state.sha = data.content.sha;
+    for(const k of keys) state.original[k] = state.inputs[k].value;
+    document.querySelectorAll(".field.changed").forEach(el => el.classList.remove("changed"));
+    refreshDirty();
+    closeModal();
+    notice("editor-notice","ok","Published! Your site will update in ~1 minute. " +
+      `<a href="https://github.com/${CONFIG.owner}/${CONFIG.repo}/commit/${data.commit.sha}" target="_blank" rel="noopener">View change</a>.`);
+    window.scrollTo({top:0, behavior:"smooth"});
+  }catch(e){
+    btn.disabled = false; btn.textContent = "Publish now";
+    alert("Publish failed: " + e.message);
+  }
+}
+
+function showConflict(){
+  const html = `<div class="overlay"><div class="modal">
+    <h2>Someone else changed the site</h2>
+    <div class="msub">The live <code>index.html</code> was updated since you loaded it, so publishing now would overwrite that change.</div>
+    <div class="foot">
+      <button class="btn btn-ghost" id="cf-cancel">Keep editing</button>
+      <button class="btn btn-primary" id="cf-reload">Reload latest</button>
+    </div>
+  </div></div>`;
+  $("#modal-root").innerHTML = html;
+  $("#cf-cancel").onclick = closeModal;
+  $("#cf-reload").onclick = () => { closeModal(); startEditor(); };
+}
+
+/* ---- unsaved-changes guard ---- */
+window.addEventListener("beforeunload", e => {
+  if(dirtyKeys().length){ e.preventDefault(); e.returnValue = ""; }
+});
+
+/* ============================================================================
+   BOOT
+   ========================================================================== */
+function boot(){
+  // wire up buttons
+  $("#btn-oauth").addEventListener("click", startOAuth);
+  $("#btn-pat").addEventListener("click", usePat);
+  $("#pat-input").addEventListener("keydown", e => { if(e.key === "Enter") usePat(); });
+  $("#btn-logout").addEventListener("click", logout);
+  $("#btn-review").addEventListener("click", openReview);
+  $("#btn-discard").addEventListener("click", discardChanges);
+
+  const params = new URLSearchParams(location.search);
+  if(params.get("code") && params.get("state") !== null){
+    handleOAuthCallback(params.get("code"), params.get("state"));
+    return;
+  }
+  if(params.get("error")){
+    showScreen("screen-login");
+    history.replaceState({}, "", CONFIG.redirectUri);
+    notice("login-notice","err","GitHub returned: " + (params.get("error_description") || params.get("error")));
+    return;
+  }
+  if(currentToken()){ startEditor(); return; }
+
+  // fresh login screen
+  showScreen("screen-login");
+  if(!oauthReady()){
+    notice("login-notice","warn","<b>First-time setup isn’t finished.</b> The “Log in with GitHub” button needs the OAuth App + Worker configured (see <code>admin/README.md</code>). Until then, use <b>Maintainer access</b> below.");
+  }
+}
+boot();
+</script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+# Cloudflare Worker — GitHub OAuth code→token exchange for the 360rma-site admin editor.
+#
+# Deploy:   cd worker && npm install && npx wrangler deploy
+# Secret:   npx wrangler secret put GITHUB_CLIENT_SECRET   (NEVER commit the secret)
+#
+# After deploy, wrangler prints a URL like:
+#   https://rma-oauth.<your-subdomain>.workers.dev
+# Paste that into admin/index.html  ->  CONFIG.workerUrl
+
+name = "rma-oauth"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+[vars]
+# The admin editor's origin. The Worker only answers requests from this origin
+# and only echoes it back in CORS headers. (Scheme + host, no path.)
+ALLOWED_ORIGIN = "https://alexbutson.github.io"
+
+# The GitHub OAuth App "Client ID". This is NOT a secret — it also appears in
+# the browser (admin/index.html). Paste your real Client ID here.
+# TODO(maintainer): replace with your GitHub OAuth App Client ID.
+GITHUB_CLIENT_ID = "TODO_PASTE_YOUR_GITHUB_OAUTH_APP_CLIENT_ID"
+
+# The Client Secret is NOT stored here. It is set as an encrypted secret:
+#   npx wrangler secret put GITHUB_CLIENT_SECRET
+# (The Worker reads it from env.GITHUB_CLIENT_SECRET at runtime.)

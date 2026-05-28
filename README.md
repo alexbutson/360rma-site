@@ -9,6 +9,8 @@ index.html          ← the entire site
 images/
   logo.png          ← header + footer logo
   hero-bg.jpg       ← hero image
+admin/              ← one-click "Log in with GitHub" content editor (see admin/README.md)
+worker/             ← Cloudflare Worker that does the OAuth token exchange
 ```
 
 ## Deploy to GitHub Pages (free)
@@ -47,4 +49,10 @@ If Formspree isn't wanted, swap the form for a `mailto:` link instead — happy 
 
 ## Editing content
 
-All text lives directly in `index.html` — search for whatever you want to change, edit it, save, push. No CMS, no rebuild step.
+Two ways:
+
+1. **Admin editor (recommended for non-technical edits)** — go to `/admin/`, click
+   **Log in with GitHub**, edit the form fields, and publish. One-time setup
+   (GitHub OAuth App + Cloudflare Worker) is documented in **[`admin/README.md`](admin/README.md)**.
+2. **Directly** — all text lives in `index.html`; search for what you want to
+   change, edit it, save, push. No CMS, no rebuild step.
