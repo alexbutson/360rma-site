@@ -1,19 +1,23 @@
 /**
- * GitHub OAuth code -> token exchange Worker for the 360rma-site admin editor.
+ * Passphrase-gated GitHub proxy for the 360rma-site admin editor.
  *
- * Why this exists: the OAuth "code for token" exchange requires the OAuth App's
- * CLIENT SECRET. That secret must never appear in browser JavaScript, so the
- * browser sends us the short-lived `code` and we do the exchange server-side.
+ * The non-technical user logs in with a PASSPHRASE (no GitHub account needed).
+ * This Worker verifies the passphrase, then reads/writes index.html on their
+ * behalf using a GitHub token that lives ONLY here — it never reaches the browser.
  *
- * Secrets / config (set outside this file — see wrangler.toml):
- *   env.GITHUB_CLIENT_ID      (var)    public Client ID
- *   env.GITHUB_CLIENT_SECRET  (secret) `wrangler secret put GITHUB_CLIENT_SECRET`
- *   env.ALLOWED_ORIGIN        (var)    e.g. https://alexbutson.github.io
+ * Secrets (set with `wrangler secret put …`, or in the Cloudflare dashboard):
+ *   GITHUB_TOKEN       repo token (classic PAT w/ `public_repo`, "No expiration"
+ *                      recommended; or fine-grained w/ Contents:Read&Write)
+ *   EDITOR_PASSPHRASE  the passphrase you give the editor
  *
- * NOTE ON TOKEN EXPIRATION: this Worker returns whatever GitHub issues. As long
- * as the OAuth App does NOT have "Expire user authorization tokens" enabled,
- * GitHub issues a NON-EXPIRING access token (no refresh token, no expires_in).
- * That is the intended behavior here — a returning user just logs in again.
+ * Vars (wrangler.toml or dashboard, NOT secret):
+ *   ALLOWED_ORIGIN  e.g. https://alexbutson.github.io  (only origin served)
+ *   REPO_OWNER, REPO_NAME, REPO_BRANCH, REPO_PATH
+ *
+ * Protocol (POST JSON to this Worker):
+ *   { action:"load", passphrase }                       -> { content, sha }
+ *   { action:"save", passphrase, content, sha, message } -> { commit_sha, content_sha }
+ * Wrong passphrase -> 401. Edit conflict -> 409.
  */
 
 export default {
@@ -22,90 +26,74 @@ export default {
     const allowed = env.ALLOWED_ORIGIN || "";
     const cors = corsHeaders(origin, allowed);
 
-    // CORS preflight
-    if (request.method === "OPTIONS") {
-      return new Response(null, { status: 204, headers: cors });
-    }
-
-    if (request.method !== "POST") {
-      return json({ error: "method_not_allowed" }, 405, cors);
-    }
-
-    // Only serve the configured admin origin.
-    if (allowed && origin !== allowed) {
-      return json({ error: "forbidden_origin", origin }, 403, cors);
-    }
+    if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
+    if (request.method !== "POST") return json({ error: "method_not_allowed" }, 405, cors);
+    if (allowed && origin !== allowed) return json({ error: "forbidden_origin", origin }, 403, cors);
 
     let body;
+    try { body = await request.json(); }
+    catch { return json({ error: "bad_request" }, 400, cors); }
+
+    const expected = env.EDITOR_PASSPHRASE || "";
+    const token = env.GITHUB_TOKEN || "";
+    if (!expected || !token) return json({ error: "server_not_configured" }, 500, cors);
+
+    // Verify passphrase (constant-time). Small delay on failure slows brute force.
+    if (!constantEq(String(body.passphrase || ""), expected)) {
+      await sleep(300);
+      return json({ error: "unauthorized" }, 401, cors);
+    }
+
+    const owner  = env.REPO_OWNER  || "alexbutson";
+    const repo   = env.REPO_NAME   || "360rma-site";
+    const branch = env.REPO_BRANCH || "main";
+    const path   = env.REPO_PATH   || "index.html";
+    const base = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`;
+    const ghHeaders = {
+      "Accept": "application/vnd.github+json",
+      "Authorization": "token " + token,
+      "User-Agent": "rma-editor-worker",
+      "X-GitHub-Api-Version": "2022-11-28",
+    };
+
     try {
-      body = await request.json();
-    } catch {
-      return json({ error: "bad_request", detail: "expected JSON body" }, 400, cors);
-    }
+      if (body.action === "load") {
+        const r = await fetch(`${base}?ref=${encodeURIComponent(branch)}`, { headers: ghHeaders });
+        if (!r.ok) return json({ error: "github_error", status: r.status }, 502, cors);
+        const data = await r.json();
+        return json({ content: b64ToUtf8(data.content), sha: data.sha }, 200, cors);
+      }
 
-    const code = body && body.code;
-    if (!code) {
-      return json({ error: "missing_code" }, 400, cors);
-    }
-
-    const clientId = env.GITHUB_CLIENT_ID;
-    const clientSecret = env.GITHUB_CLIENT_SECRET;
-    if (!clientId || !clientSecret || String(clientId).startsWith("TODO")) {
-      // Misconfiguration — the maintainer hasn't set the ID/secret yet.
-      return json({ error: "server_not_configured" }, 500, cors);
-    }
-
-    // Exchange the code with GitHub. The secret stays on the server.
-    let ghResp;
-    try {
-      ghResp = await fetch("https://github.com/login/oauth/access_token", {
-        method: "POST",
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-          "User-Agent": "rma-oauth-worker",
-        },
-        body: JSON.stringify({
-          client_id: clientId,
-          client_secret: clientSecret,
-          code,
-          // redirect_uri must match the value used in the authorize step.
-          redirect_uri: body.redirect_uri || undefined,
-        }),
-      });
+      if (body.action === "save") {
+        if (typeof body.content !== "string" || !body.sha)
+          return json({ error: "bad_request" }, 400, cors);
+        const r = await fetch(base, {
+          method: "PUT",
+          headers: { ...ghHeaders, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: String(body.message || "Update site content via editor"),
+            content: utf8ToB64(body.content),
+            sha: body.sha,
+            branch,
+          }),
+        });
+        if (r.status === 409 || r.status === 422) return json({ error: "conflict" }, 409, cors);
+        if (!r.ok) {
+          const e = await r.json().catch(() => ({}));
+          return json({ error: "github_error", status: r.status, detail: e.message }, 502, cors);
+        }
+        const data = await r.json();
+        return json({ commit_sha: data.commit.sha, content_sha: data.content.sha }, 200, cors);
+      }
     } catch (e) {
-      return json({ error: "github_unreachable" }, 502, cors);
+      return json({ error: "proxy_error", detail: e.message }, 502, cors);
     }
 
-    let data;
-    try {
-      data = await ghResp.json();
-    } catch {
-      return json({ error: "github_bad_response" }, 502, cors);
-    }
-
-    if (data.error) {
-      // e.g. bad_verification_code, redirect_uri_mismatch
-      return json(
-        { error: data.error, error_description: data.error_description },
-        400,
-        cors
-      );
-    }
-
-    // Return ONLY what the browser needs. Never leak the client secret.
-    return json(
-      {
-        access_token: data.access_token,
-        token_type: data.token_type,
-        scope: data.scope,
-      },
-      200,
-      cors
-    );
+    return json({ error: "unknown_action" }, 400, cors);
   },
 };
 
+/* ---------- helpers ---------- */
 function corsHeaders(origin, allowed) {
   const h = {
     "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -113,19 +101,30 @@ function corsHeaders(origin, allowed) {
     "Access-Control-Max-Age": "86400",
     "Vary": "Origin",
   };
-  if (allowed) {
-    // Reflect only the allowed origin.
-    if (origin === allowed) h["Access-Control-Allow-Origin"] = allowed;
-  } else {
-    // No allow-list configured: fall back to the requesting origin.
-    h["Access-Control-Allow-Origin"] = origin || "*";
-  }
+  if (allowed) { if (origin === allowed) h["Access-Control-Allow-Origin"] = allowed; }
+  else h["Access-Control-Allow-Origin"] = origin || "*";
   return h;
 }
-
 function json(obj, status, cors) {
-  return new Response(JSON.stringify(obj), {
-    status,
-    headers: { "Content-Type": "application/json", ...cors },
-  });
+  return new Response(JSON.stringify(obj), { status, headers: { "Content-Type": "application/json", ...cors } });
+}
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function constantEq(a, b) {
+  const ea = new TextEncoder().encode(a), eb = new TextEncoder().encode(b);
+  if (ea.length !== eb.length) return false;
+  let diff = 0;
+  for (let i = 0; i < ea.length; i++) diff |= ea[i] ^ eb[i];
+  return diff === 0;
+}
+function utf8ToB64(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = "", chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+  return btoa(bin);
+}
+function b64ToUtf8(b64) {
+  const bin = atob(String(b64).replace(/\s/g, ""));
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
 }

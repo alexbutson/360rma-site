@@ -1,12 +1,13 @@
 {
-  "name": "rma-oauth",
+  "name": "rma-editor",
   "version": "1.0.0",
   "private": true,
-  "description": "GitHub OAuth code->token exchange for the 360rma-site admin editor",
+  "description": "Passphrase-gated GitHub proxy for the 360rma-site admin editor",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "secret": "wrangler secret put GITHUB_CLIENT_SECRET"
+    "secret:token": "wrangler secret put GITHUB_TOKEN",
+    "secret:pass": "wrangler secret put EDITOR_PASSPHRASE"
   },
   "devDependencies": {
     "wrangler": "^3.90.0"

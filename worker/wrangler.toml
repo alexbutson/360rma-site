@@ -1,26 +1,29 @@
-# Cloudflare Worker — GitHub OAuth code→token exchange for the 360rma-site admin editor.
+# Cloudflare Worker — passphrase-gated GitHub proxy for the 360rma-site editor.
 #
-# Deploy:   cd worker && npm install && npx wrangler deploy
-# Secret:   npx wrangler secret put GITHUB_CLIENT_SECRET   (NEVER commit the secret)
+# Deploy (with Node/wrangler):
+#   cd worker && npm install && npx wrangler deploy
+# Or deploy via the Cloudflare dashboard (no Node needed) — see ../admin/README.md.
 #
-# After deploy, wrangler prints a URL like:
-#   https://rma-oauth.<your-subdomain>.workers.dev
-# Paste that into admin/index.html  ->  CONFIG.workerUrl
+# Secrets (NEVER commit these):
+#   npx wrangler secret put GITHUB_TOKEN        # repo token (kept server-side only)
+#   npx wrangler secret put EDITOR_PASSPHRASE   # the passphrase you give the editor
+#
+# After deploy you get a URL like https://rma-editor.<subdomain>.workers.dev
+# Paste it into admin/index.html -> CONFIG.workerUrl
 
-name = "rma-oauth"
+name = "rma-editor"
 main = "src/index.js"
 compatibility_date = "2025-01-01"
 
 [vars]
-# The admin editor's origin. The Worker only answers requests from this origin
-# and only echoes it back in CORS headers. (Scheme + host, no path.)
+# Only this origin is served / allowed in CORS (scheme + host, no path).
 ALLOWED_ORIGIN = "https://alexbutson.github.io"
 
-# The GitHub OAuth App "Client ID". This is NOT a secret — it also appears in
-# the browser (admin/index.html). Paste your real Client ID here.
-# TODO(maintainer): replace with your GitHub OAuth App Client ID.
-GITHUB_CLIENT_ID = "TODO_PASTE_YOUR_GITHUB_OAUTH_APP_CLIENT_ID"
+# Which file the editor reads/writes.
+REPO_OWNER  = "alexbutson"
+REPO_NAME   = "360rma-site"
+REPO_BRANCH = "main"
+REPO_PATH   = "index.html"
 
-# The Client Secret is NOT stored here. It is set as an encrypted secret:
-#   npx wrangler secret put GITHUB_CLIENT_SECRET
-# (The Worker reads it from env.GITHUB_CLIENT_SECRET at runtime.)
+# Secrets are set separately (see comments above) — never in this file:
+#   GITHUB_TOKEN, EDITOR_PASSPHRASE
