@@ -11,7 +11,7 @@
 # After deploy you get a URL like https://rma-editor.<subdomain>.workers.dev
 # Paste it into admin/index.html -> CONFIG.workerUrl
 
-name = "rma-editor"
+name = "rmaworker"
 main = "src/index.js"
 compatibility_date = "2025-01-01"
 
