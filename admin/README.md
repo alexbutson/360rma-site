@@ -110,6 +110,19 @@ That’s it — passphrase login has no callback URL to update.
 editor changes **only the text between markers**, so every other byte is preserved
 and the change history stays clean. Field list = `FIELDS` in `admin/index.html`.
 
+## 🖼️ Editing images
+The editor has an **Images** section to replace the logo and hero photo. Pick a
+file, preview it, and publish — it overwrites the file at the same path, so every
+place it's used updates automatically. Each image is its own commit.
+- Writable image paths are **allow-listed** in the Worker
+  (`images/<name>.<png|jpg|jpeg|webp|gif|svg>`) so a leaked passphrase can't write
+  arbitrary files.
+- To add another editable image, add it to the `IMAGES` list in `admin/index.html`
+  (any `images/…` file is already allowed by the Worker).
+- **Heads-up:** image support added two new Worker actions, so after pulling this
+  change you must **re-paste `worker/src/index.js` into the Cloudflare dashboard
+  and Deploy** (Settings/secrets stay as-is).
+
 ## ⚠️ Known limitation (this version)
 Phone, email, and street address each appear in several places (nav, hero,
 contact, footer — and inside `tel:`/`mailto:` links). To avoid partial updates
