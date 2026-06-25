@@ -281,28 +281,63 @@ const COLORS = [
 ];
 const COLOR_BY_KEY = Object.fromEntries(COLORS.map(c => [c.key, c]));
 
-// Curated Google Fonts. `stack` is the fallback used if the web font fails to load.
+// Curated Google Fonts. `stack` is the fallback if the web font fails to load;
+// `cat` groups them in the dropdown (serif / sans / display).
+const SERIF="Georgia, serif", SANS="system-ui, -apple-system, sans-serif";
 const FONTS = [
-  {name:"Fraunces",           stack:"Georgia, serif"},
-  {name:"Playfair Display",   stack:"Georgia, serif"},
-  {name:"Lora",               stack:"Georgia, serif"},
-  {name:"Merriweather",       stack:"Georgia, serif"},
-  {name:"EB Garamond",        stack:"Georgia, serif"},
-  {name:"Cormorant Garamond", stack:"Georgia, serif"},
-  {name:"DM Serif Display",   stack:"Georgia, serif"},
-  {name:"Libre Baskerville",  stack:"Georgia, serif"},
-  {name:"Spectral",           stack:"Georgia, serif"},
-  {name:"Crimson Pro",        stack:"Georgia, serif"},
-  {name:"Manrope",            stack:"system-ui, -apple-system, sans-serif"},
-  {name:"Inter",              stack:"system-ui, -apple-system, sans-serif"},
-  {name:"Work Sans",          stack:"system-ui, -apple-system, sans-serif"},
-  {name:"DM Sans",            stack:"system-ui, -apple-system, sans-serif"},
-  {name:"Poppins",            stack:"system-ui, -apple-system, sans-serif"},
-  {name:"Montserrat",         stack:"system-ui, -apple-system, sans-serif"},
-  {name:"Source Sans 3",      stack:"system-ui, -apple-system, sans-serif"},
-  {name:"Nunito",             stack:"system-ui, -apple-system, sans-serif"},
-  {name:"Roboto",             stack:"system-ui, -apple-system, sans-serif"},
-  {name:"Open Sans",          stack:"system-ui, -apple-system, sans-serif"},
+  // ---- Serif ----
+  {name:"Fraunces",           stack:SERIF, cat:"serif"},
+  {name:"Playfair Display",   stack:SERIF, cat:"serif"},
+  {name:"Lora",               stack:SERIF, cat:"serif"},
+  {name:"Merriweather",       stack:SERIF, cat:"serif"},
+  {name:"EB Garamond",        stack:SERIF, cat:"serif"},
+  {name:"Cormorant Garamond", stack:SERIF, cat:"serif"},
+  {name:"DM Serif Display",   stack:SERIF, cat:"serif"},
+  {name:"Libre Baskerville",  stack:SERIF, cat:"serif"},
+  {name:"Spectral",           stack:SERIF, cat:"serif"},
+  {name:"Crimson Pro",        stack:SERIF, cat:"serif"},
+  {name:"Source Serif 4",     stack:SERIF, cat:"serif"},
+  {name:"PT Serif",           stack:SERIF, cat:"serif"},
+  {name:"Bitter",             stack:SERIF, cat:"serif"},
+  {name:"Noto Serif",         stack:SERIF, cat:"serif"},
+  {name:"Domine",             stack:SERIF, cat:"serif"},
+  {name:"Newsreader",         stack:SERIF, cat:"serif"},
+  {name:"Frank Ruhl Libre",   stack:SERIF, cat:"serif"},
+  {name:"Roboto Slab",        stack:SERIF, cat:"serif"},
+  {name:"Zilla Slab",         stack:SERIF, cat:"serif"},
+  {name:"Cardo",              stack:SERIF, cat:"serif"},
+  // ---- Sans-serif ----
+  {name:"Manrope",            stack:SANS,  cat:"sans"},
+  {name:"Inter",              stack:SANS,  cat:"sans"},
+  {name:"Work Sans",          stack:SANS,  cat:"sans"},
+  {name:"DM Sans",            stack:SANS,  cat:"sans"},
+  {name:"Poppins",            stack:SANS,  cat:"sans"},
+  {name:"Montserrat",         stack:SANS,  cat:"sans"},
+  {name:"Source Sans 3",      stack:SANS,  cat:"sans"},
+  {name:"Nunito",             stack:SANS,  cat:"sans"},
+  {name:"Roboto",             stack:SANS,  cat:"sans"},
+  {name:"Open Sans",          stack:SANS,  cat:"sans"},
+  {name:"Lato",               stack:SANS,  cat:"sans"},
+  {name:"Raleway",            stack:SANS,  cat:"sans"},
+  {name:"Mulish",             stack:SANS,  cat:"sans"},
+  {name:"Rubik",              stack:SANS,  cat:"sans"},
+  {name:"Karla",              stack:SANS,  cat:"sans"},
+  {name:"Figtree",            stack:SANS,  cat:"sans"},
+  {name:"Outfit",             stack:SANS,  cat:"sans"},
+  {name:"Plus Jakarta Sans",  stack:SANS,  cat:"sans"},
+  {name:"Public Sans",        stack:SANS,  cat:"sans"},
+  {name:"IBM Plex Sans",      stack:SANS,  cat:"sans"},
+  {name:"Lexend",             stack:SANS,  cat:"sans"},
+  {name:"Archivo",            stack:SANS,  cat:"sans"},
+  {name:"Barlow",             stack:SANS,  cat:"sans"},
+  {name:"Josefin Sans",       stack:SANS,  cat:"sans"},
+  // ---- Display (headlines; use sparingly) ----
+  {name:"Oswald",             stack:SANS,  cat:"display"},
+  {name:"Bebas Neue",         stack:SANS,  cat:"display"},
+  {name:"Anton",              stack:SANS,  cat:"display"},
+  {name:"Sora",               stack:SANS,  cat:"display"},
+  {name:"Space Grotesk",      stack:SANS,  cat:"display"},
+  {name:"Abril Fatface",      stack:SERIF, cat:"display"},
 ];
 const FONT_STACK = Object.fromEntries(FONTS.map(f => [f.name, f.stack]));
 const FONT_ROLES = [
@@ -635,9 +670,14 @@ function renderTheme(form){
     if(state.fontMissing[r.key]){ const w=document.createElement("div"); w.className="warn"; w.textContent="Not found in index.html."; wrap.appendChild(w); body.appendChild(wrap); continue; }
     const sel=document.createElement("select"); sel.className="fontsel";
     const cur=state.fontOrig[r.key];
-    const names=FONTS.map(f=>f.name);
-    if(cur && !names.includes(cur)) names.unshift(cur);   // keep an unknown current font visible
-    for(const n of names){ const o=document.createElement("option"); o.value=n; o.textContent=n; if(n===cur) o.selected=true; sel.appendChild(o); }
+    const allNames=FONTS.map(f=>f.name);
+    if(cur && !allNames.includes(cur)){ const o=document.createElement("option"); o.value=cur; o.textContent=cur+" (current)"; o.selected=true; sel.appendChild(o); }
+    for(const [glabel,gkey] of [["Serif","serif"],["Sans-serif","sans"],["Display","display"]]){
+      const list=FONTS.filter(f=>f.cat===gkey); if(!list.length) continue;
+      const og=document.createElement("optgroup"); og.label=glabel;
+      for(const f of list){ const o=document.createElement("option"); o.value=f.name; o.textContent=f.name; if(f.name===cur) o.selected=true; og.appendChild(o); }
+      sel.appendChild(og);
+    }
     sel.addEventListener("change", ()=>onThemeFontInput(r.key));
     wrap.appendChild(sel); state.fontInput[r.key]=sel;
     body.appendChild(wrap);
