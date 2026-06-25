@@ -97,6 +97,36 @@
   .cmsg{margin:8px 0 4px}
   .spinner{width:34px;height:34px;border:3px solid var(--rule);border-top-color:var(--red);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
   @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ---- THEME (colors & fonts) ---- */
+  .theme-sub{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:18px 0 4px}
+  .theme-sub:first-child{margin-top:6px}
+  .theme-field{padding:14px 0;border-top:1px solid var(--cream-deep)}
+  .theme-field.changed label.fld{color:var(--red)}
+  .theme-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px 26px}
+  @media(max-width:600px){.theme-grid{grid-template-columns:1fr}}
+  .swatch-row{display:flex;align-items:center;gap:10px;margin-top:2px}
+  .swatch-row input[type=color]{appearance:none;-webkit-appearance:none;width:44px;height:38px;padding:0;border:1.5px solid var(--rule);border-radius:8px;background:#fff;cursor:pointer;flex:none}
+  .swatch-row input[type=color]::-webkit-color-swatch-wrapper{padding:3px}
+  .swatch-row input[type=color]::-webkit-color-swatch{border:none;border-radius:5px}
+  .swatch-row input[type=color]::-moz-color-swatch{border:none;border-radius:5px}
+  .swatch-row input.hex{flex:1;text-transform:uppercase;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;letter-spacing:.03em}
+  .swatch-row input.hex.bad{border-color:var(--red);color:var(--red-deep)}
+  select.fontsel{width:100%;font:inherit;font-size:15px;color:var(--ink);background:#fff;border:1.5px solid var(--rule);border-radius:8px;padding:11px 13px}
+  select.fontsel:focus{outline:none;border-color:var(--red)}
+  .reset-theme{background:none;border:none;color:var(--muted);font:inherit;font-size:12px;font-weight:600;cursor:pointer;text-decoration:underline;padding:6px 0;margin-top:6px}
+  .reset-theme:hover{color:var(--red)}
+
+  /* ---- LIVE PREVIEW ---- */
+  body.preview-open .bar-inner,body.preview-open .banner .wrap,body.preview-open main .wrap,body.preview-open .actionbar .wrap{max-width:none;margin:0;padding-right:calc(46vw + 22px)}
+  #preview-panel{position:fixed;top:0;right:0;width:46vw;height:100vh;z-index:45;background:var(--cream-deep);border-left:1px solid var(--rule);display:flex;flex-direction:column;box-shadow:-14px 0 34px -26px rgba(15,27,45,.55)}
+  #preview-panel .pv-head{display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid var(--rule);font-size:13px;color:var(--muted);background:#fff}
+  #preview-panel .pv-head b{color:var(--ink)}
+  #preview-frame{flex:1;width:100%;border:0;background:#fff}
+  @media(max-width:880px){
+    body.preview-open .bar-inner,body.preview-open .banner .wrap,body.preview-open main .wrap,body.preview-open .actionbar .wrap{padding-right:22px}
+    #preview-panel{width:100vw}
+  }
 </style>
 </head>
 <body>
@@ -155,11 +185,17 @@
   <div class="actionbar">
     <div class="wrap">
       <span class="status" id="dirty-status">No unsaved changes</span>
+      <button id="btn-preview" class="btn btn-ghost">Show preview</button>
       <button id="btn-discard" class="btn btn-ghost" disabled>Discard changes</button>
       <button id="btn-review" class="btn btn-primary" disabled>Review &amp; publish</button>
     </div>
   </div>
 </section>
+
+<aside id="preview-panel" class="hidden">
+  <div class="pv-head"><b>Live preview</b> · reflects your unsaved changes. Publish to make it live.</div>
+  <iframe id="preview-frame" title="Live preview"></iframe>
+</aside>
 
 <div id="modal-root"></div>
 
@@ -229,6 +265,52 @@ const IMAGES = [
 const IMG_BY_KEY = Object.fromEntries(IMAGES.map(i => [i.key, i]));
 
 /* ============================================================================
+   THEME  —  colors (full palette) + fonts. Colors map to the CSS variables in
+   index.html's :root; fonts map to --font-head / --font-body plus the Google
+   Fonts <link> inside the <!--e:fontlink--> markers.
+   ========================================================================== */
+const COLORS = [
+  {key:"--cream",      label:"Page background"},
+  {key:"--cream-deep", label:"Section / panel background"},
+  {key:"--ink",        label:"Main text & dark buttons"},
+  {key:"--ink-soft",   label:"Secondary text"},
+  {key:"--muted",      label:"Muted / caption text"},
+  {key:"--rule",       label:"Lines & borders"},
+  {key:"--red",        label:"Accent — buttons & links"},
+  {key:"--red-deep",   label:"Accent — dark (hover)"},
+];
+const COLOR_BY_KEY = Object.fromEntries(COLORS.map(c => [c.key, c]));
+
+// Curated Google Fonts. `stack` is the fallback used if the web font fails to load.
+const FONTS = [
+  {name:"Fraunces",           stack:"Georgia, serif"},
+  {name:"Playfair Display",   stack:"Georgia, serif"},
+  {name:"Lora",               stack:"Georgia, serif"},
+  {name:"Merriweather",       stack:"Georgia, serif"},
+  {name:"EB Garamond",        stack:"Georgia, serif"},
+  {name:"Cormorant Garamond", stack:"Georgia, serif"},
+  {name:"DM Serif Display",   stack:"Georgia, serif"},
+  {name:"Libre Baskerville",  stack:"Georgia, serif"},
+  {name:"Spectral",           stack:"Georgia, serif"},
+  {name:"Crimson Pro",        stack:"Georgia, serif"},
+  {name:"Manrope",            stack:"system-ui, -apple-system, sans-serif"},
+  {name:"Inter",              stack:"system-ui, -apple-system, sans-serif"},
+  {name:"Work Sans",          stack:"system-ui, -apple-system, sans-serif"},
+  {name:"DM Sans",            stack:"system-ui, -apple-system, sans-serif"},
+  {name:"Poppins",            stack:"system-ui, -apple-system, sans-serif"},
+  {name:"Montserrat",         stack:"system-ui, -apple-system, sans-serif"},
+  {name:"Source Sans 3",      stack:"system-ui, -apple-system, sans-serif"},
+  {name:"Nunito",             stack:"system-ui, -apple-system, sans-serif"},
+  {name:"Roboto",             stack:"system-ui, -apple-system, sans-serif"},
+  {name:"Open Sans",          stack:"system-ui, -apple-system, sans-serif"},
+];
+const FONT_STACK = Object.fromEntries(FONTS.map(f => [f.name, f.stack]));
+const FONT_ROLES = [
+  {key:"--font-head", label:"Headings font"},
+  {key:"--font-body", label:"Body text font"},
+];
+
+/* ============================================================================
    AUTH STORAGE
    mode "passphrase" -> talks to the Worker; passphrase kept in storage.
    mode "pat"        -> maintainer; GitHub token kept in storage, direct API.
@@ -286,6 +368,39 @@ function displayToRaw(f, val){
   if(f.type==="list"){ const it=val.split(/\r?\n/).map(s=>s.trim()).filter(Boolean); return it.map(x=>`\n        <li>${enc(x)}</li>`).join("")+"\n      "; }
   if(f.type==="html") return val;
   return enc(val);
+}
+
+/* ---- THEME helpers: read/write CSS variables + font link ---- */
+// Read a CSS custom property value from the file text. Word-boundary safe so
+// "--red" never matches "--red-deep".
+function getVar(text, name){
+  const n = name.replace(/^--/,"");
+  const m = text.match(new RegExp("--"+n+"\\s*:\\s*([^;]*);"));
+  return m ? m[1].trim() : null;
+}
+function setVar(text, name, value){
+  const n = name.replace(/^--/,"");
+  return text.replace(new RegExp("(--"+n+"\\s*:\\s*)[^;]*(;)"), (m,p1,p2)=> p1+value+p2);
+}
+function normHex(v){
+  if(!v) return v;
+  v = v.trim().toLowerCase();
+  if(/^#?[0-9a-f]{3}$/.test(v)){ v=v.replace("#",""); return "#"+v[0]+v[0]+v[1]+v[1]+v[2]+v[2]; }
+  if(/^#?[0-9a-f]{6}$/.test(v)){ return "#"+v.replace("#",""); }
+  return v.startsWith("#")?v:"#"+v;
+}
+function isValidHex(v){ return /^#?[0-9a-f]{3}$/i.test((v||"").trim()) || /^#?[0-9a-f]{6}$/i.test((v||"").trim()); }
+// Pull the primary family name out of a CSS font stack: 'Fraunces', Georgia, serif -> Fraunces
+function familyOf(stackVal){
+  if(!stackVal) return "";
+  return stackVal.split(",")[0].trim().replace(/^['"]|['"]$/g,"");
+}
+function stackFor(name){ return `'${name}', ${FONT_STACK[name] || "sans-serif"}`; }
+// Build a Google Fonts css2 <link> loading the chosen heading + body families.
+function buildFontLink(headName, bodyName){
+  const fams = [...new Set([headName, bodyName].filter(Boolean))];
+  const parts = fams.map(n => "family=" + n.trim().replace(/ /g,"+") + ":ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600");
+  return `<link href="https://fonts.googleapis.com/css2?${parts.join("&")}&display=swap" rel="stylesheet">`;
 }
 
 /* ============================================================================
@@ -370,7 +485,8 @@ async function saveBinary(path, base64, sha, message){
 /* ============================================================================
    STATE
    ========================================================================== */
-const state = { sha:null, originalText:"", original:{}, inputs:{}, missing:{}, imgPending:{} };
+const state = { sha:null, originalText:"", original:{}, inputs:{}, missing:{}, imgPending:{},
+  colorOrig:{}, colorInput:{}, colorMissing:{}, fontOrig:{}, fontInput:{}, fontMissing:{} };
 
 /* ---- AUTH actions ---- */
 function unlock(){
@@ -414,6 +530,18 @@ async function startEditor(){
     else { state.missing[f.key]=false; state.original[f.key]=rawToDisplay(f, raw); }
   }
 
+  // theme: colors + fonts (read current values from the file)
+  for(const c of COLORS){
+    const v = getVar(state.originalText, c.key);
+    if(v===null){ state.colorMissing[c.key]=true; state.colorOrig[c.key]=null; }
+    else { state.colorMissing[c.key]=false; state.colorOrig[c.key]=normHex(v); }
+  }
+  for(const r of FONT_ROLES){
+    const v = getVar(state.originalText, r.key);
+    if(v===null){ state.fontMissing[r.key]=true; state.fontOrig[r.key]=null; }
+    else { state.fontMissing[r.key]=false; state.fontOrig[r.key]=familyOf(v); }
+  }
+
   // header greeting
   if(currentMode()==="pat"){
     let login=""; try{ const u=await ghFetch("/user"); if(u.ok) login=(await u.json()).login||""; }catch{}
@@ -435,6 +563,7 @@ let currentModeWas = null;   // remembered before clearAuth, for the right error
 
 function renderForm(){
   const form=$("#form"); form.innerHTML=""; state.inputs={};
+  renderTheme(form);
   for(const section of SECTIONS){
     const det=document.createElement("details"); det.className="sec"; det.open=true;
     const sum=document.createElement("summary"); sum.textContent=section; det.appendChild(sum);
@@ -491,12 +620,109 @@ async function onImagePick(key, file){
   refreshDirty();
 }
 
+/* ---- THEME: render colors & fonts ---- */
+function renderTheme(form){
+  state.colorInput={}; state.fontInput={};
+  const det=document.createElement("details"); det.className="sec"; det.open=true;
+  const sum=document.createElement("summary"); sum.textContent="Colors & Fonts"; det.appendChild(sum);
+  const body=document.createElement("div"); body.className="body";
+
+  // ---- Fonts ----
+  const fh=document.createElement("div"); fh.className="theme-sub"; fh.textContent="Fonts"; body.appendChild(fh);
+  for(const r of FONT_ROLES){
+    const wrap=document.createElement("div"); wrap.className="theme-field"+(state.fontMissing[r.key]?" missing":""); wrap.dataset.fontkey=r.key;
+    const lab=document.createElement("label"); lab.className="fld"; lab.textContent=r.label; wrap.appendChild(lab);
+    if(state.fontMissing[r.key]){ const w=document.createElement("div"); w.className="warn"; w.textContent="Not found in index.html."; wrap.appendChild(w); body.appendChild(wrap); continue; }
+    const sel=document.createElement("select"); sel.className="fontsel";
+    const cur=state.fontOrig[r.key];
+    const names=FONTS.map(f=>f.name);
+    if(cur && !names.includes(cur)) names.unshift(cur);   // keep an unknown current font visible
+    for(const n of names){ const o=document.createElement("option"); o.value=n; o.textContent=n; if(n===cur) o.selected=true; sel.appendChild(o); }
+    sel.addEventListener("change", ()=>onThemeFontInput(r.key));
+    wrap.appendChild(sel); state.fontInput[r.key]=sel;
+    body.appendChild(wrap);
+  }
+
+  // ---- Colors ----
+  const ch=document.createElement("div"); ch.className="theme-sub"; ch.textContent="Colors"; body.appendChild(ch);
+  const grid=document.createElement("div"); grid.className="theme-grid";
+  for(const c of COLORS){
+    const wrap=document.createElement("div"); wrap.className="theme-field"+(state.colorMissing[c.key]?" missing":""); wrap.dataset.colorkey=c.key;
+    const lab=document.createElement("label"); lab.className="fld"; lab.textContent=c.label; wrap.appendChild(lab);
+    if(state.colorMissing[c.key]){ const w=document.createElement("div"); w.className="warn"; w.textContent="Not found in index.html."; wrap.appendChild(w); grid.appendChild(wrap); continue; }
+    const orig=state.colorOrig[c.key];
+    const row=document.createElement("div"); row.className="swatch-row";
+    const pick=document.createElement("input"); pick.type="color"; pick.value=orig;
+    const hex=document.createElement("input"); hex.type="text"; hex.className="hex"; hex.value=orig.toUpperCase(); hex.spellcheck=false; hex.maxLength=7; hex.setAttribute("aria-label", c.label+" hex code");
+    pick.addEventListener("input", ()=>{ hex.value=pick.value.toUpperCase(); hex.classList.remove("bad"); onThemeColorInput(c.key); });
+    hex.addEventListener("input", ()=>{ if(isValidHex(hex.value)){ hex.classList.remove("bad"); pick.value=normHex(hex.value); onThemeColorInput(c.key); } else { hex.classList.add("bad"); } });
+    row.appendChild(pick); row.appendChild(hex); wrap.appendChild(row);
+    state.colorInput[c.key]={pick, hex};
+    grid.appendChild(wrap);
+  }
+  body.appendChild(grid);
+
+  const reset=document.createElement("button"); reset.type="button"; reset.className="reset-theme"; reset.textContent="Reset colors & fonts to original";
+  reset.addEventListener("click", resetTheme);
+  body.appendChild(reset);
+
+  det.appendChild(body); form.appendChild(det);
+}
+
+function onThemeColorInput(key){
+  const w=document.querySelector(`.theme-field[data-colorkey="${key}"]`); if(w) w.classList.toggle("changed", colorDirty(key));
+  refreshDirty(); schedulePreview();
+}
+function onThemeFontInput(key){
+  const w=document.querySelector(`.theme-field[data-fontkey="${key}"]`); if(w) w.classList.toggle("changed", fontDirty(key));
+  refreshDirty(); schedulePreview();
+}
+function resetTheme(){
+  for(const c of COLORS){ if(state.colorMissing[c.key]) continue; const i=state.colorInput[c.key]; i.pick.value=state.colorOrig[c.key]; i.hex.value=state.colorOrig[c.key].toUpperCase(); i.hex.classList.remove("bad"); const w=document.querySelector(`.theme-field[data-colorkey="${c.key}"]`); if(w) w.classList.remove("changed"); }
+  for(const r of FONT_ROLES){ if(state.fontMissing[r.key]) continue; state.fontInput[r.key].value=state.fontOrig[r.key]; const w=document.querySelector(`.theme-field[data-fontkey="${r.key}"]`); if(w) w.classList.remove("changed"); }
+  refreshDirty(); schedulePreview();
+}
+function colorDirty(key){ if(state.colorMissing[key]) return false; const i=state.colorInput[key]; if(!i) return false; return isValidHex(i.hex.value) && normHex(i.hex.value)!==state.colorOrig[key]; }
+function fontDirty(key){ if(state.fontMissing[key]) return false; const s=state.fontInput[key]; if(!s) return false; return s.value!==state.fontOrig[key]; }
+function dirtyColors(){ return COLORS.map(c=>c.key).filter(colorDirty); }
+function dirtyFonts(){ return FONT_ROLES.map(r=>r.key).filter(fontDirty); }
+
+/* ---- LIVE PREVIEW ---- */
+let pvTimer=null;
+function previewOpen(){ return !$("#preview-panel").classList.contains("hidden"); }
+function schedulePreview(){ if(!previewOpen()) return; clearTimeout(pvTimer); pvTimer=setTimeout(renderPreview, 280); }
+function togglePreview(){
+  const p=$("#preview-panel"); const willOpen=p.classList.contains("hidden");
+  p.classList.toggle("hidden", !willOpen);
+  document.body.classList.toggle("preview-open", willOpen);
+  $("#btn-preview").textContent = willOpen ? "Hide preview" : "Show preview";
+  if(willOpen) renderPreview();
+}
+function renderPreview(){ const f=$("#preview-frame"); if(f) f.srcdoc=buildPreviewDoc(); }
+function buildPreviewDoc(){
+  let t = state.originalText || ""; if(!t) return "";
+  // apply current text field values
+  for(const f of FIELDS){ if(state.missing[f.key]) continue; const inp=state.inputs[f.key]; if(inp) t=setBetween(t, f.key, displayToRaw(f, inp.value)); }
+  // apply colors
+  for(const c of COLORS){ if(state.colorMissing[c.key]) continue; const i=state.colorInput[c.key]; if(i && isValidHex(i.hex.value)) t=setVar(t, c.key, normHex(i.hex.value).toUpperCase()); }
+  // apply fonts + font link
+  const hs=state.fontInput["--font-head"], bs=state.fontInput["--font-body"];
+  if(hs && !state.fontMissing["--font-head"]) t=setVar(t, "--font-head", stackFor(hs.value));
+  if(bs && !state.fontMissing["--font-body"]) t=setVar(t, "--font-body", stackFor(bs.value));
+  if(hs && bs) t=setBetween(t, "fontlink", buildFontLink(hs.value, bs.value));
+  // swap in pending images as data URLs
+  for(const key of Object.keys(state.imgPending)){ const img=IMG_BY_KEY[key]; if(img) t=t.split(img.path).join(state.imgPending[key].dataUrl); }
+  // base href so existing relative assets resolve to the live site
+  try{ const base=new URL("../", location.href).href; t=t.replace(/<head([^>]*)>/i, `<head$1><base href="${base}">`); }catch(e){}
+  return t;
+}
+
 /* ---- DIRTY TRACKING ---- */
 function isDirty(key){ return !state.missing[key] && state.inputs[key].value !== state.original[key]; }
 function dirtyKeys(){ return FIELDS.map(f=>f.key).filter(isDirty); }
 function dirtyImages(){ return Object.keys(state.imgPending); }
-function totalDirty(){ return dirtyKeys().length + dirtyImages().length; }
-function onFieldInput(key){ const w=document.querySelector(`.field[data-key="${key}"]`); if(w) w.classList.toggle("changed", isDirty(key)); refreshDirty(); }
+function totalDirty(){ return dirtyKeys().length + dirtyImages().length + dirtyColors().length + dirtyFonts().length; }
+function onFieldInput(key){ const w=document.querySelector(`.field[data-key="${key}"]`); if(w) w.classList.toggle("changed", isDirty(key)); refreshDirty(); schedulePreview(); }
 function refreshDirty(){
   const n=totalDirty();
   $("#dirty-status").innerHTML = n ? `${n} unsaved change${n>1?"s":""}<span class="dirtydot"></span>` : "No unsaved changes";
@@ -512,14 +738,24 @@ function discardChanges(){
     const cap=$("#imgcap_"+key); if(cap) cap.textContent="Current image";
     const w=document.querySelector(`.field[data-imgkey="${key}"]`); if(w) w.classList.remove("changed");
   }
+  resetTheme();
   refreshDirty();
 }
 
 /* ---- REVIEW + PUBLISH ---- */
 function openReview(){
-  const tkeys=dirtyKeys(), ikeys=dirtyImages();
-  const total=tkeys.length+ikeys.length;
+  const tkeys=dirtyKeys(), ikeys=dirtyImages(), ckeys=dirtyColors(), fkeys=dirtyFonts();
+  const total=tkeys.length+ikeys.length+ckeys.length+fkeys.length;
   if(!total) return;
+  const swatch = hex => `<span style="display:inline-block;width:14px;height:14px;border-radius:3px;border:1px solid rgba(0,0,0,.15);vertical-align:middle;margin-right:6px;background:${enc(hex)}"></span>`;
+  const crows=ckeys.map(k=>{ const c=COLOR_BY_KEY[k]; const was=state.colorOrig[k].toUpperCase(), now=normHex(state.colorInput[k].hex.value).toUpperCase();
+    return `<div class="diff"><div class="k">Colors — ${enc(c.label)}</div>
+      <div class="row before">${swatch(was)}${enc(was)}</div>
+      <div class="row after">${swatch(now)}${enc(now)}</div></div>`; }).join("");
+  const frows=fkeys.map(k=>{ const r=FONT_ROLES.find(x=>x.key===k);
+    return `<div class="diff"><div class="k">Fonts — ${enc(r.label)}</div>
+      <div class="row before">${enc(state.fontOrig[k])}</div>
+      <div class="row after">${enc(state.fontInput[k].value)}</div></div>`; }).join("");
   const trows=tkeys.map(k=>{ const f=FIELD_BY_KEY[k]; return `<div class="diff"><div class="k">${enc(f.section)} — ${enc(f.label)}</div>
     <div class="row before">${enc(state.original[k])||"<em>(empty)</em>"}</div>
     <div class="row after">${enc(state.inputs[k].value)||"<em>(empty)</em>"}</div></div>`; }).join("");
@@ -533,7 +769,7 @@ function openReview(){
   $("#modal-root").innerHTML = `<div class="overlay"><div class="modal">
     <h2>Review changes</h2>
     <div class="msub">${total} change${total>1?"s":""} will be published to your live site.</div>
-    <div class="scroll">${trows}${irows}</div>
+    <div class="scroll">${crows}${frows}${trows}${irows}</div>
     <div style="padding:14px 24px 0"><label class="fld" for="commit-msg">Change note (saved in history)</label>
       <input type="text" id="commit-msg" class="cmsg" value="Update site content via editor"></div>
     <div class="foot"><button class="btn btn-ghost" id="ov-cancel">Cancel</button><button class="btn btn-primary" id="ov-publish">Publish now</button></div>
@@ -546,16 +782,23 @@ function pubFail(btn, what, err){ btn.disabled=false; btn.textContent="Publish n
 function authLost(){ currentModeWas=currentMode(); clearAuth(); showScreen("screen-login"); notice("login-notice","err","Your session ended during publish. Log back in — anything not yet published is kept only if you don’t reload."); }
 
 async function publish(){
-  const tkeys=dirtyKeys(), ikeys=dirtyImages();
+  const tkeys=dirtyKeys(), ikeys=dirtyImages(), ckeys=dirtyColors(), fkeys=dirtyFonts();
   const msg=($("#commit-msg").value||"Update site content via editor").trim();
   const btn=$("#ov-publish"); btn.disabled=true;
   let lastCommit=null;
 
-  // 1) text changes (one commit)
-  if(tkeys.length){
-    btn.textContent="Publishing text…";
+  // 1) text + theme changes (one commit — all live in index.html)
+  if(tkeys.length || ckeys.length || fkeys.length){
+    btn.textContent="Publishing…";
     let newText = state.originalText;
     for(const k of tkeys) newText = setBetween(newText, k, displayToRaw(FIELD_BY_KEY[k], state.inputs[k].value));
+    for(const k of ckeys) newText = setVar(newText, k, normHex(state.colorInput[k].hex.value).toUpperCase());
+    if(fkeys.length){
+      const head=state.fontInput["--font-head"], bodyf=state.fontInput["--font-body"];
+      if(head && !state.fontMissing["--font-head"]) newText = setVar(newText, "--font-head", stackFor(head.value));
+      if(bodyf && !state.fontMissing["--font-body"]) newText = setVar(newText, "--font-body", stackFor(bodyf.value));
+      if(head && bodyf) newText = setBetween(newText, "fontlink", buildFontLink(head.value, bodyf.value));
+    }
     const res = await saveFile(newText, msg);
     if(res.conflict){ closeModal(); showConflict(); return; }
     if(res.auth){ authLost(); return; }
@@ -563,7 +806,9 @@ async function publish(){
     state.originalText = newText;
     state.sha = res.content_sha || state.sha;
     for(const k of tkeys) state.original[k] = state.inputs[k].value;
-    document.querySelectorAll('.field[data-key].changed').forEach(el=>el.classList.remove("changed"));
+    for(const k of ckeys) state.colorOrig[k] = normHex(state.colorInput[k].hex.value);
+    for(const k of fkeys) state.fontOrig[k] = state.fontInput[k].value;
+    document.querySelectorAll('.field[data-key].changed,.theme-field.changed').forEach(el=>el.classList.remove("changed"));
     lastCommit = res.commit_sha || lastCommit;
   }
 
@@ -614,6 +859,7 @@ function boot(){
   $("#btn-logout").addEventListener("click", logout);
   $("#btn-review").addEventListener("click", openReview);
   $("#btn-discard").addEventListener("click", discardChanges);
+  $("#btn-preview").addEventListener("click", togglePreview);
 
   if(currentMode()){ currentModeWas=currentMode(); startEditor(); return; }
 
