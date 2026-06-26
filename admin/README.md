@@ -123,6 +123,27 @@ place it's used updates automatically. Each image is its own commit.
   change you must **re-paste `worker/src/index.js` into the Cloudflare dashboard
   and Deploy** (Settings/secrets stay as-is).
 
+## 🎨 Editing colors & fonts
+The editor has a **Colors & Fonts** section (top of the form):
+- **Colors** — every site color is a swatch + hex box. Click the swatch to pick,
+  or type an exact hex (e.g. `#FFFFFF`). Covers page background, panel background,
+  text shades, borders, and the red accent.
+- **Fonts** — independent **Headings** and **Body** dropdowns with ~59 Google
+  Fonts grouped into Serif / Sans-serif / Display. Picking a font also rewrites the
+  Google Fonts `<link>` automatically.
+- **Live preview** — the **Show preview** button (bottom bar) renders the site with
+  the pending changes before publishing.
+- **Contrast warning** — if a color change drops important text below a readable
+  contrast ratio, a heads-up appears (advisory only; it won't block publishing).
+
+How it works under the hood: colors map to the CSS variables in `index.html`'s
+`:root` (e.g. `--cream`, `--red`); fonts map to `--font-head` / `--font-body` plus
+the `<!--e:fontlink-->` Google Fonts link. All changes are written into `index.html`
+in the same publish commit as any text edits. The color list, font list, and the
+contrast pairs all live near the top of the `<script>` in `admin/index.html`
+(`COLORS`, `FONTS`, `CONTRAST_PAIRS`) — easy to extend. **No Worker change needed**
+for this feature (it only writes `index.html`, already allowed).
+
 ## ⚠️ Known limitation (this version)
 Phone, email, and street address each appear in several places (nav, hero,
 contact, footer — and inside `tel:`/`mailto:` links). To avoid partial updates

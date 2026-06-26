@@ -447,6 +447,35 @@ function buildFontLink(headName, bodyName){
   return `<link href="https://fonts.googleapis.com/css2?${parts.join("&")}&display=swap" rel="stylesheet">`;
 }
 
+/* ---- Contrast checking (WCAG) so Bob gets a heads-up on hard-to-read combos ---- */
+function hexToRgb(h){ h=normHex(h).replace("#",""); return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]; }
+function relLum(rgb){ const a=rgb.map(v=>{ v/=255; return v<=0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055,2.4); }); return 0.2126*a[0]+0.7152*a[1]+0.0722*a[2]; }
+function contrastRatio(h1,h2){ const L1=relLum(hexToRgb(h1)), L2=relLum(hexToRgb(h2)); const hi=Math.max(L1,L2), lo=Math.min(L1,L2); return (hi+0.05)/(lo+0.05); }
+// fg/bg are color-variable keys; min is the WCAG ratio (4.5 normal text, 3 large/UI text)
+const CONTRAST_PAIRS = [
+  {fg:"--ink",      bg:"--cream",      label:"Main text on page background",        min:4.5},
+  {fg:"--ink-soft", bg:"--cream",      label:"Secondary text on page background",   min:4.5},
+  {fg:"--red",      bg:"--cream",      label:"Links / accent text on background",   min:4.5},
+  {fg:"--ink",      bg:"--cream-deep", label:"Text on section / panel background",   min:4.5},
+  {fg:"--cream",    bg:"--ink",        label:"Button text on dark buttons",         min:3},
+  {fg:"--cream",    bg:"--red",        label:"Button text on accent buttons",       min:3},
+];
+function curColor(key){ const i=state.colorInput[key]; if(i && isValidHex(i.hex.value)) return normHex(i.hex.value); return state.colorOrig[key]; }
+function refreshContrast(){
+  const box=$("#contrast-warn"); if(!box) return;
+  const msgs=[];
+  for(const p of CONTRAST_PAIRS){
+    if(state.colorMissing[p.fg] || state.colorMissing[p.bg]) continue;
+    const cur=contrastRatio(curColor(p.fg), curColor(p.bg));
+    const base=contrastRatio(state.colorOrig[p.fg], state.colorOrig[p.bg]);
+    // only flag when it falls below the bar AND the change made it worse (no nagging about defaults)
+    if(cur < p.min && cur < base - 0.05) msgs.push(`${p.label} — ${cur.toFixed(1)}:1 (aim for ${p.min}:1)`);
+  }
+  box.innerHTML = msgs.length
+    ? `<div class="notice notice-warn" style="margin-top:12px"><b>⚠ Low contrast — this may be hard to read:</b><br>${msgs.map(enc).join("<br>")}</div>`
+    : "";
+}
+
 /* ============================================================================
    TRANSPORT  —  load/save route through Worker (passphrase) or GitHub (PAT)
    ========================================================================== */
@@ -711,16 +740,19 @@ function renderTheme(form){
   }
   body.appendChild(grid);
 
+  const cw=document.createElement("div"); cw.id="contrast-warn"; body.appendChild(cw);
+
   const reset=document.createElement("button"); reset.type="button"; reset.className="reset-theme"; reset.textContent="Reset colors & fonts to original";
   reset.addEventListener("click", resetTheme);
   body.appendChild(reset);
 
   det.appendChild(body); form.appendChild(det);
+  refreshContrast();
 }
 
 function onThemeColorInput(key){
   const w=document.querySelector(`.theme-field[data-colorkey="${key}"]`); if(w) w.classList.toggle("changed", colorDirty(key));
-  refreshDirty(); schedulePreview();
+  refreshContrast(); refreshDirty(); schedulePreview();
 }
 function onThemeFontInput(key){
   const w=document.querySelector(`.theme-field[data-fontkey="${key}"]`); if(w) w.classList.toggle("changed", fontDirty(key));
@@ -729,7 +761,7 @@ function onThemeFontInput(key){
 function resetTheme(){
   for(const c of COLORS){ if(state.colorMissing[c.key]) continue; const i=state.colorInput[c.key]; i.pick.value=state.colorOrig[c.key]; i.hex.value=state.colorOrig[c.key].toUpperCase(); i.hex.classList.remove("bad"); const w=document.querySelector(`.theme-field[data-colorkey="${c.key}"]`); if(w) w.classList.remove("changed"); }
   for(const r of FONT_ROLES){ if(state.fontMissing[r.key]) continue; state.fontInput[r.key].value=state.fontOrig[r.key]; const w=document.querySelector(`.theme-field[data-fontkey="${r.key}"]`); if(w) w.classList.remove("changed"); }
-  refreshDirty(); schedulePreview();
+  refreshContrast(); refreshDirty(); schedulePreview();
 }
 function colorDirty(key){ if(state.colorMissing[key]) return false; const i=state.colorInput[key]; if(!i) return false; return isValidHex(i.hex.value) && normHex(i.hex.value)!==state.colorOrig[key]; }
 function fontDirty(key){ if(state.fontMissing[key]) return false; const s=state.fontInput[key]; if(!s) return false; return s.value!==state.fontOrig[key]; }
