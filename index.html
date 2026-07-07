@@ -577,7 +577,7 @@
         </dl>
         <span class="spanish-tag">🌐 Spanish speaking available</span>
       </div>
-      <form class="contact-form reveal" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+      <form class="contact-form reveal" id="contact-form">
         <h3>Send us a message</h3>
         <div class="field"><label for="n">Name</label><input id="n" name="name" type="text" required></div>
         <div class="field"><label for="p">Phone</label><input id="p" name="phone" type="tel" required></div>
@@ -640,6 +640,21 @@
   document.querySelectorAll('.reveal').forEach(el => io.observe(el));
   // Year
   document.getElementById('year').textContent = new Date().getFullYear();
+  // Contact form -> opens the visitor's email app pre-filled (no backend needed)
+  const cform = document.getElementById('contact-form');
+  cform?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const val = id => (document.getElementById(id)?.value || '').trim();
+    const name = val('n'), phone = val('p'), email = val('e'), message = val('m');
+    const subject = 'Quote request from ' + (name || 'website visitor');
+    const body =
+      'Name: ' + name + '\n' +
+      'Phone: ' + phone + '\n' +
+      'Email: ' + email + '\n\n' +
+      'How can we help?\n' + message + '\n';
+    window.location.href = 'mailto:bobj@360rma.com?subject=' +
+      encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+  });
 </script>
 
 </body>
