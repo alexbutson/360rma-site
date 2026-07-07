@@ -221,9 +221,9 @@ const CONFIG = {
 /* ============================================================================
    FIELD MAP  —  mirrors the <!--e:key-->…<!--/e:key--> markers in index.html
    ========================================================================== */
-const SECTIONS = ["Section Styles","Navigation","Contact Info","Hero","Above & Beyond","What We Offer","Who We Are","Pull Quote","Contact"];
+const SECTIONS = ["Navigation","Contact Info","Hero","Above & Beyond","What We Offer","Who We Are","Pull Quote","Contact"];
 const FIELDS = [
-  {key:"sectionthemes",         section:"Section Styles", label:"Colors & text size for each part of the page", type:"sectionthemes"},
+  {key:"sectionthemes",         section:"_style", label:"Colors & text size for each part of the page", type:"sectionthemes"},
   {key:"nav_home",              section:"Navigation", label:"Menu item 1 (goes to top)", type:"text", mirror:"fnav_home", hint:"The footer menu updates to match."},
   {key:"nav_offer",             section:"Navigation", label:"Menu item 2 (goes to What We Offer)", type:"text", mirror:"fnav_offer", hint:"The footer menu updates to match."},
   {key:"nav_who",               section:"Navigation", label:"Menu item 3 (goes to Who We Are)", type:"text", mirror:"fnav_who", hint:"The footer menu updates to match."},
@@ -653,12 +653,14 @@ let currentModeWas = null;   // remembered before clearAuth, for the right error
 function renderForm(){
   const form=$("#form"); form.innerHTML=""; state.inputs={};
   renderTheme(form);
+  stEnsureHidden(form);
   for(const section of SECTIONS){
     const det=document.createElement("details"); det.className="sec"; det.open=true;
     const sum=document.createElement("summary"); sum.textContent=section; det.appendChild(sum);
     const body=document.createElement("div"); body.className="body";
+    const stk=ST_KEY_BY_LABEL[section];   // this section's style controls (if it maps to a page area)
+    if(stk && !state.missing.sectionthemes) body.appendChild(buildSectionThemeRow(stk));
     for(const f of FIELDS.filter(x=>x.section===section)){
-      if(f.type==="sectionthemes"){ body.appendChild(buildSectionThemesField(f)); continue; }
       const wrap=document.createElement("div"); wrap.className="field"+(state.missing[f.key]?" missing":""); wrap.dataset.key=f.key;
       const lab=document.createElement("label"); lab.className="fld"; lab.textContent=f.label; lab.htmlFor="in_"+f.key; wrap.appendChild(lab);
       let input;
@@ -726,63 +728,79 @@ function stVarHex(v){ const fall={"--cream":"#F6F1E9","--cream-deep":"#EBE3D2","
 function stResolveBgHex(bg){ if(!bg||bg==="default") return null; if(bg.indexOf("var:")===0) return stVarHex(bg.slice(4)); if(bg[0]==="#") return bg; return null; }
 function stBgIsDark(bg){ if(!bg||bg==="default") return false; if(bg.indexOf("var:")===0) return !!ST_DARKVARS[bg.slice(4)]; try{ return relLum(hexToRgb(bg))<0.45; }catch{ return false; } }
 function stName(opts,v){ if(v&&v[0]==="#") return v.toUpperCase(); const m=opts.find(x=>x[0]===v); return m?m[1]:String(v); }
+const ST_KEY_BY_LABEL = Object.fromEntries(ST_SECTIONS.map(([k,l])=>[l,k]));
 
-function buildSectionThemesField(f){
-  const wrap=document.createElement("div"); wrap.className="field"+(state.missing[f.key]?" missing":""); wrap.dataset.key=f.key;
-  const lab=document.createElement("label"); lab.className="fld"; lab.textContent=f.label; wrap.appendChild(lab);
-  const hidden=document.createElement("input"); hidden.type="hidden"; hidden.id="in_"+f.key; hidden.value=state.original[f.key]||"";
-  wrap.appendChild(hidden); state.inputs[f.key]=hidden;
-  if(state.missing[f.key]){ const w=document.createElement("div"); w.className="warn"; w.textContent="Not found in index.html (marker missing)."; wrap.appendChild(w); return wrap; }
-  const rows={};
-  const paint=()=>{ for(const [sk] of ST_SECTIONS){ const r=rows[sk];
-    const bgVal = r.bgSel.value==="custom" ? r.picker.value.toUpperCase() : r.bgSel.value;
+// One hidden JSON field holds all sections' styles; the per-section rows write to it.
+function stEnsureHidden(form){
+  state.stRows={};
+  const hidden=document.createElement("input"); hidden.type="hidden"; hidden.id="in_sectionthemes";
+  hidden.value=state.original.sectionthemes||"";
+  form.appendChild(hidden); state.inputs.sectionthemes=hidden;
+}
+function stPaintAll(){
+  for(const [sk] of ST_SECTIONS){ const r=state.stRows[sk]; if(!r) continue;
+    const bgVal=r.bgSel.value==="custom"?r.picker.value.toUpperCase():r.bgSel.value;
     r.picker.classList.toggle("hidden", r.bgSel.value!=="custom");
     const hex=stResolveBgHex(bgVal);
-    let fg=r.fgSel.value; if(fg==="auto") fg = hex ? (stBgIsDark(bgVal)?"light":"dark") : "dark";
-    r.aa.style.background = hex||"transparent";
+    let fg=r.fgSel.value; if(fg==="auto") fg=hex?(stBgIsDark(bgVal)?"light":"dark"):"dark";
+    r.aa.style.background=hex||"transparent";
     r.aa.style.color = fg==="light" ? "#F6F1E9" : stVarHex("--ink");
-  } };
-  const sync=()=>{ const o={}; for(const [sk] of ST_SECTIONS){ const r=rows[sk];
-    o[sk]={ bg: r.bgSel.value==="custom" ? r.picker.value.toUpperCase() : r.bgSel.value, fg: r.fgSel.value, hs: r.hsSel.value, bs: r.bsSel.value };
-  } hidden.value=stSerialize(o); paint(); onFieldInput(f.key); };
-  const setRow=(sk,t)=>{ const r=rows[sk]; const bg=(t&&t.bg)||"default";
-    if(bg[0]==="#"){ r.bgSel.value="custom"; r.picker.value=bg.toLowerCase(); }
-    else r.bgSel.value = ST_BG_OPTS.some(x=>x[0]===bg)?bg:"default";
-    const fg=(t&&t.fg)||"auto"; r.fgSel.value = ST_FG_OPTS.some(x=>x[0]===fg)?fg:"auto";
-    const hs=(t&&t.hs)||"n"; r.hsSel.value = ST_SIZE_OPTS.some(x=>x[0]===hs)?hs:"n";
-    const bs=(t&&t.bs)||"n"; r.bsSel.value = ST_SIZE_OPTS.some(x=>x[0]===bs)?bs:"n"; };
-  const init=stParse(hidden.value);
-  for(const [sk,sl] of ST_SECTIONS){
-    const row=document.createElement("div"); row.className="strow";
-    const nm=document.createElement("div"); nm.className="stname"; nm.textContent=sl; row.appendChild(nm);
-    const bgSel=document.createElement("select");
-    for(const [v,l] of ST_BG_OPTS){ const o=document.createElement("option"); o.value=v; o.textContent=l; bgSel.appendChild(o); }
-    const picker=document.createElement("input"); picker.type="color"; picker.className="hidden"; picker.value="#f6f1e9";
-    const fgSel=document.createElement("select");
-    for(const [v,l] of ST_FG_OPTS){ const o=document.createElement("option"); o.value=v; o.textContent=l; fgSel.appendChild(o); }
-    const hsSel=document.createElement("select");
-    for(const [v,l] of ST_SIZE_OPTS){ const o=document.createElement("option"); o.value=v; o.textContent=l; hsSel.appendChild(o); }
-    const bsSel=document.createElement("select");
-    for(const [v,l] of ST_SIZE_OPTS){ const o=document.createElement("option"); o.value=v; o.textContent=l; bsSel.appendChild(o); }
-    const aa=document.createElement("span"); aa.className="staa"; aa.textContent="Aa";
-    bgSel.addEventListener("change",sync); picker.addEventListener("input",sync); fgSel.addEventListener("change",sync);
-    hsSel.addEventListener("change",sync); bsSel.addEventListener("change",sync);
-    const mkGroup=(lbl,el)=>{ const g=document.createElement("div"), l=document.createElement("span"); l.className="imglbl"; l.textContent=lbl; g.appendChild(l); g.appendChild(el); return g; };
-    const g1i=document.createElement("span"); g1i.style.cssText="display:flex;gap:8px;align-items:center"; g1i.appendChild(bgSel); g1i.appendChild(picker);
-    row.appendChild(mkGroup("Background", g1i));
-    row.appendChild(mkGroup("Text color", fgSel));
-    row.appendChild(mkGroup("Heading size", hsSel));
-    row.appendChild(mkGroup("Text size", bsSel));
-    row.appendChild(mkGroup("Preview", aa));
-    rows[sk]={bgSel,picker,fgSel,hsSel,bsSel,aa};
-    setRow(sk, init[sk]);
-    wrap.appendChild(row);
   }
-  const h=document.createElement("div"); h.className="hint";
-  h.textContent="“Auto” text picks a readable color for the chosen background. Use Show preview (bottom bar) to see it before publishing.";
+}
+function stSyncAll(){
+  const hidden=state.inputs.sectionthemes; if(!hidden) return;
+  const orig=stParse(state.original.sectionthemes||"{}");
+  const o={};
+  for(const [sk] of ST_SECTIONS){ const r=state.stRows[sk]; if(!r) continue;
+    o[sk]={ bg: r.bgSel.value==="custom"?r.picker.value.toUpperCase():r.bgSel.value, fg:r.fgSel.value, hs:r.hsSel.value, bs:r.bsSel.value };
+    const os=Object.assign({bg:"default",fg:"auto",hs:"n",bs:"n"}, orig[sk]||{});
+    const changed = o[sk].bg!==os.bg||o[sk].fg!==os.fg||o[sk].hs!==os.hs||o[sk].bs!==os.bs;
+    const w=document.querySelector(`.stfield[data-stkey="${sk}"]`); if(w) w.classList.toggle("changed", changed);
+  }
+  hidden.value=stSerialize(o); stPaintAll(); onFieldInput("sectionthemes");
+}
+function stSetRow(sk,t){
+  const r=state.stRows[sk]; if(!r) return;
+  const bg=(t&&t.bg)||"default";
+  if(bg[0]==="#"){ r.bgSel.value="custom"; r.picker.value=bg.toLowerCase(); }
+  else r.bgSel.value=ST_BG_OPTS.some(x=>x[0]===bg)?bg:"default";
+  const fg=(t&&t.fg)||"auto"; r.fgSel.value=ST_FG_OPTS.some(x=>x[0]===fg)?fg:"auto";
+  const hs=(t&&t.hs)||"n"; r.hsSel.value=ST_SIZE_OPTS.some(x=>x[0]===hs)?hs:"n";
+  const bs=(t&&t.bs)||"n"; r.bsSel.value=ST_SIZE_OPTS.some(x=>x[0]===bs)?bs:"n";
+}
+function stResetAll(){
+  const orig=stParse(state.original.sectionthemes||"{}");
+  for(const [sk] of ST_SECTIONS) stSetRow(sk, orig[sk]);
+  if(state.inputs.sectionthemes) state.inputs.sectionthemes.value=stSerialize(orig);
+  document.querySelectorAll('.stfield.changed').forEach(el=>el.classList.remove('changed'));
+  stPaintAll();
+}
+// Build the style controls for ONE section (prepended to that section's panel).
+function buildSectionThemeRow(sk){
+  const wrap=document.createElement("div"); wrap.className="field stfield"; wrap.dataset.stkey=sk;
+  const lab=document.createElement("label"); lab.className="fld"; lab.textContent="Colors & size for this section"; wrap.appendChild(lab);
+  const row=document.createElement("div"); row.className="strow";
+  const bgSel=document.createElement("select");
+  for(const [v,l] of ST_BG_OPTS){ const o=document.createElement("option"); o.value=v; o.textContent=l; bgSel.appendChild(o); }
+  const picker=document.createElement("input"); picker.type="color"; picker.className="hidden"; picker.value="#f6f1e9";
+  const fgSel=document.createElement("select"); for(const [v,l] of ST_FG_OPTS){ const o=document.createElement("option"); o.value=v; o.textContent=l; fgSel.appendChild(o); }
+  const hsSel=document.createElement("select"); for(const [v,l] of ST_SIZE_OPTS){ const o=document.createElement("option"); o.value=v; o.textContent=l; hsSel.appendChild(o); }
+  const bsSel=document.createElement("select"); for(const [v,l] of ST_SIZE_OPTS){ const o=document.createElement("option"); o.value=v; o.textContent=l; bsSel.appendChild(o); }
+  const aa=document.createElement("span"); aa.className="staa"; aa.textContent="Aa";
+  bgSel.addEventListener("change",stSyncAll); picker.addEventListener("input",stSyncAll); fgSel.addEventListener("change",stSyncAll); hsSel.addEventListener("change",stSyncAll); bsSel.addEventListener("change",stSyncAll);
+  const mkGroup=(l2,el)=>{ const g=document.createElement("div"), s=document.createElement("span"); s.className="imglbl"; s.textContent=l2; g.appendChild(s); g.appendChild(el); return g; };
+  const g1i=document.createElement("span"); g1i.style.cssText="display:flex;gap:8px;align-items:center"; g1i.appendChild(bgSel); g1i.appendChild(picker);
+  row.appendChild(mkGroup("Background", g1i));
+  row.appendChild(mkGroup("Text color", fgSel));
+  row.appendChild(mkGroup("Heading size", hsSel));
+  row.appendChild(mkGroup("Text size", bsSel));
+  row.appendChild(mkGroup("Preview", aa));
+  wrap.appendChild(row);
+  const h=document.createElement("div"); h.className="hint"; h.textContent="“Auto” text picks a readable color for the background. Use Show preview to see it first.";
   wrap.appendChild(h);
-  wrap.__stReset=()=>{ const cur=stParse(hidden.value); for(const [sk] of ST_SECTIONS) setRow(sk, cur[sk]); paint(); };
-  paint();
+  state.stRows[sk]={bgSel,picker,fgSel,hsSel,bsSel,aa};
+  stSetRow(sk, stParse(state.original.sectionthemes||"{}")[sk]);
+  stPaintAll();
   return wrap;
 }
 function stDiffHtml(){
@@ -927,7 +945,7 @@ function discardChanges(){
     const cap=$("#imgcap_"+key); if(cap) cap.textContent="Current image";
     const w=document.querySelector(`.field[data-imgkey="${key}"]`); if(w) w.classList.remove("changed");
   }
-  const st=document.querySelector('.field[data-key="sectionthemes"]'); if(st && st.__stReset) st.__stReset();
+  stResetAll();
   resetTheme();
   refreshDirty();
 }
@@ -1003,7 +1021,7 @@ async function publish(){
     for(const k of tkeys) state.original[k] = state.inputs[k].value;
     for(const k of ckeys) state.colorOrig[k] = normHex(state.colorInput[k].hex.value);
     for(const k of fkeys) state.fontOrig[k] = state.fontInput[k].value;
-    document.querySelectorAll('.field[data-key].changed,.theme-field.changed').forEach(el=>el.classList.remove("changed"));
+    document.querySelectorAll('.field[data-key].changed,.theme-field.changed,.stfield.changed').forEach(el=>el.classList.remove("changed"));
     lastCommit = res.commit_sha || lastCommit;
   }
 
