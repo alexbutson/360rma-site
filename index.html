@@ -455,8 +455,26 @@
   section.themed-bs .contact-info dt { font-size: calc(12px * var(--tbs, 1)) !important; }
   section.themed-bs .attribution { font-size: calc(13px * var(--tbs, 1)) !important; }
   section.themed-bs .hero-eyebrow, section.themed-bs .section-eyebrow { font-size: calc(12px * var(--tbs, 1)) !important; }
+  /* nav bar theming (set via the admin editor's Navigation section) */
+  header.nav.themed-fg .nav-menu a { color: var(--tfg) !important; }
+  header.nav.themed-fg .nav-menu a:hover { color: var(--tfg-accent) !important; }
+  header.nav.themed-fg .nav-cta { color: var(--tfg-accent) !important; border-color: var(--tfg-accent) !important; }
+  header.nav.themed-fg .nav-toggle span { background: var(--tfg) !important; }
+  header.nav.themed-hs .nav-cta { font-size: calc(17px * var(--ths, 1)) !important; }
+  header.nav.themed-bs .nav-menu a { font-size: calc(14px * var(--tbs, 1)) !important; }
+  /* footer theming (set via the admin editor's Contact Info section) */
+  footer.site-footer.themed-fg h4 { color: var(--tfg) !important; }
+  footer.site-footer.themed-fg p,
+  footer.site-footer.themed-fg .footer-grid ul a,
+  footer.site-footer.themed-fg .footer-grid ul li,
+  footer.site-footer.themed-fg .footer-bottom { color: var(--tfg-soft) !important; }
+  footer.site-footer.themed-hs h4 { font-size: calc(12px * var(--ths, 1)) !important; }
+  footer.site-footer.themed-bs p,
+  footer.site-footer.themed-bs .footer-grid ul a,
+  footer.site-footer.themed-bs .footer-grid ul li,
+  footer.site-footer.themed-bs .footer-bottom { font-size: calc(14px * var(--tbs, 1)) !important; }
 </style>
-<script type="application/json" id="theme-config"><!--e:sectionthemes-->{"hero":{"bg":"default","fg":"auto","hs":"n","bs":"n"},"above":{"bg":"default","fg":"auto","hs":"n","bs":"n"},"offer":{"bg":"default","fg":"auto","hs":"n","bs":"n"},"who":{"bg":"default","fg":"auto","hs":"n","bs":"n"},"quote":{"bg":"default","fg":"auto","hs":"n","bs":"n"},"contact":{"bg":"default","fg":"auto","hs":"n","bs":"n"}}<!--/e:sectionthemes--></script>
+<script type="application/json" id="theme-config"><!--e:sectionthemes-->{"nav":{"bg":"default","fg":"auto","hs":"n","bs":"n"},"hero":{"bg":"default","fg":"auto","hs":"n","bs":"n"},"above":{"bg":"default","fg":"auto","hs":"n","bs":"n"},"offer":{"bg":"default","fg":"auto","hs":"n","bs":"n"},"who":{"bg":"default","fg":"auto","hs":"n","bs":"n"},"quote":{"bg":"default","fg":"auto","hs":"n","bs":"n"},"contact":{"bg":"default","fg":"auto","hs":"n","bs":"n"},"footer":{"bg":"default","fg":"auto","hs":"n","bs":"n"}}<!--/e:sectionthemes--></script>
 </head>
 <body>
 
@@ -619,7 +637,7 @@
 </section>
 
 <!-- ═══════════ FOOTER ═══════════ -->
-<footer class="site-footer">
+<footer class="site-footer" id="site-footer">
   <div class="container">
     <div class="footer-grid">
       <div>
@@ -676,7 +694,7 @@
     let cfg = {};
     try { cfg = JSON.parse(el.textContent.replace(/<!--[\s\S]*?-->/g, '').trim() || '{}'); }
     catch (e) { return; }
-    const ids = { hero: 'top', above: 'above', offer: 'offer', who: 'who', quote: 'quote', contact: 'contact' };
+    const ids = { nav: 'nav', hero: 'top', above: 'above', offer: 'offer', who: 'who', quote: 'quote', contact: 'contact', footer: 'site-footer' };
     const lum = h => {
       const x = h.replace('#', '');
       const f = x.length === 3 ? x.split('').map(c => c + c).join('') : x;
