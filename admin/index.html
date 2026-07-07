@@ -78,6 +78,12 @@
   .imgcompare{display:flex;gap:18px;flex-wrap:wrap;margin-top:4px}
   .imgcompare img.imgthumb{max-width:230px;max-height:140px;border:1px solid var(--rule);border-radius:6px;background:var(--cream-deep);padding:6px}
   .imglbl{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
+  .strow{display:flex;align-items:flex-end;gap:16px;padding:12px 0;border-top:1px solid var(--cream-deep);flex-wrap:wrap}
+  .strow .stname{width:140px;font-size:14px;font-weight:600;padding-bottom:8px}
+  .strow select{font:inherit;font-size:14px;padding:8px 10px;border:1.5px solid var(--rule);border-radius:8px;background:#fff;color:var(--ink)}
+  .strow input[type=color]{width:36px;height:36px;border:1.5px solid var(--rule);border-radius:8px;padding:2px;background:#fff;cursor:pointer}
+  .strow .imglbl{display:block;margin-bottom:4px}
+  .staa{display:inline-block;min-width:48px;text-align:center;padding:7px 10px;border-radius:6px;border:1px solid var(--rule);font-weight:700}
 
   .actionbar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:#fff;border-top:1px solid var(--rule);box-shadow:0 -10px 30px -22px rgba(15,27,45,.4)}
   .actionbar .wrap{display:flex;align-items:center;gap:14px;padding:14px 22px}
@@ -215,8 +221,13 @@ const CONFIG = {
 /* ============================================================================
    FIELD MAP  —  mirrors the <!--e:key-->…<!--/e:key--> markers in index.html
    ========================================================================== */
-const SECTIONS = ["Hero","Above & Beyond","What We Offer","Who We Are","Pull Quote","Contact"];
+const SECTIONS = ["Section Colors","Navigation","Hero","Above & Beyond","What We Offer","Who We Are","Pull Quote","Contact"];
 const FIELDS = [
+  {key:"sectionthemes",         section:"Section Colors", label:"Background & text color for each part of the page", type:"sectionthemes"},
+  {key:"nav_home",              section:"Navigation", label:"Menu item 1 (goes to top)", type:"text", mirror:"fnav_home"},
+  {key:"nav_who",               section:"Navigation", label:"Menu item 2 (goes to Who We Are)", type:"text", mirror:"fnav_who"},
+  {key:"nav_offer",             section:"Navigation", label:"Menu item 3 (goes to What We Offer)", type:"text", mirror:"fnav_offer"},
+  {key:"nav_contact",           section:"Navigation", label:"Menu item 4 (goes to Contact)", type:"text", mirror:"fnav_contact"},
   {key:"hero_eyebrow",          section:"Hero", label:"Eyebrow (label above headline)", type:"text"},
   {key:"hero_title_1",          section:"Hero", label:"Headline — line 1", type:"text"},
   {key:"hero_title_em",         section:"Hero", label:"Headline — line 2 (red italic)", type:"text"},
@@ -405,12 +416,12 @@ function setBetween(text, key, value){
 }
 function rawToDisplay(f, raw){
   if(f.type==="list") return [...raw.matchAll(/<li>([\s\S]*?)<\/li>/g)].map(m=>dec(m[1].trim())).join("\n");
-  if(f.type==="html") return raw;
+  if(f.type==="html"||f.type==="sectionthemes") return raw;
   return dec(raw);
 }
 function displayToRaw(f, val){
   if(f.type==="list"){ const it=val.split(/\r?\n/).map(s=>s.trim()).filter(Boolean); return it.map(x=>`\n        <li>${enc(x)}</li>`).join("")+"\n      "; }
-  if(f.type==="html") return val;
+  if(f.type==="html"||f.type==="sectionthemes") return val;
   return enc(val);
 }
 
@@ -642,6 +653,7 @@ function renderForm(){
     const sum=document.createElement("summary"); sum.textContent=section; det.appendChild(sum);
     const body=document.createElement("div"); body.className="body";
     for(const f of FIELDS.filter(x=>x.section===section)){
+      if(f.type==="sectionthemes"){ body.appendChild(buildSectionThemesField(f)); continue; }
       const wrap=document.createElement("div"); wrap.className="field"+(state.missing[f.key]?" missing":""); wrap.dataset.key=f.key;
       const lab=document.createElement("label"); lab.className="fld"; lab.textContent=f.label; lab.htmlFor="in_"+f.key; wrap.appendChild(lab);
       let input;
@@ -654,6 +666,7 @@ function renderForm(){
       if(state.missing[f.key]){ const w=document.createElement("div"); w.className="warn"; w.textContent="Not found in index.html (marker missing)."; wrap.appendChild(w); }
       else if(f.type==="html"){ const h=document.createElement("div"); h.className="hint"; h.innerHTML="HTML allowed — e.g. <code>&lt;em&gt;…&lt;/em&gt;</code> shows as red italic."; wrap.appendChild(h); }
       else if(f.type==="list"){ const h=document.createElement("div"); h.className="hint"; h.textContent="One item per line."; wrap.appendChild(h); }
+      else if(f.mirror){ const h=document.createElement("div"); h.className="hint"; h.textContent="The footer menu updates to match."; wrap.appendChild(h); }
       body.appendChild(wrap);
     }
     det.appendChild(body); form.appendChild(det);
@@ -691,6 +704,83 @@ async function onImagePick(key, file){
   const cap=$("#imgcap_"+key); if(cap) cap.innerHTML="New: "+enc(file.name)+" ("+humanSize(file.size)+")"+(file.size>5*1024*1024?' <span style="color:var(--red-deep)">— large, consider compressing</span>':"");
   const w=document.querySelector(`.field[data-imgkey="${key}"]`); if(w) w.classList.add("changed");
   refreshDirty();
+}
+
+/* ---- SECTION COLORS: per-section background + text color ----
+   Stored as JSON between <!--e:sectionthemes--> markers in index.html; a small
+   script there applies it on page load. bg: "default" | "var:--name" | "#hex".
+   fg: "auto" | "dark" | "light" ("auto" picks a readable color for the bg). */
+const ST_SECTIONS=[["hero","Hero"],["above","Above & Beyond"],["offer","What We Offer"],["who","Who We Are"],["quote","Pull Quote"],["contact","Contact"]];
+const ST_BG_OPTS=[["default","Site default"],["var:--cream","Cream"],["var:--cream-deep","Warm sand"],["var:--ink","Navy"],["var:--ink-soft","Slate"],["var:--red","Brand red"],["custom","Custom…"]];
+const ST_FG_OPTS=[["auto","Auto (recommended)"],["dark","Dark"],["light","Light"]];
+const ST_DARKVARS={"--ink":1,"--ink-soft":1,"--red":1,"--red-deep":1};
+function stParse(raw){ try{ const o=JSON.parse(raw); return (o&&typeof o==="object")?o:{}; }catch{ return {}; } }
+function stSerialize(o){ const out={}; for(const [k] of ST_SECTIONS){ const t=o[k]||{}; out[k]={bg:t.bg||"default", fg:t.fg||"auto"}; } return JSON.stringify(out); }
+function stVarHex(v){ const fall={"--cream":"#F6F1E9","--cream-deep":"#EBE3D2","--ink":"#0F1B2D","--ink-soft":"#2B3A52","--red":"#D7253A","--red-deep":"#A81B2C"}; return state.colorOrig[v]||fall[v]||"#F6F1E9"; }
+function stResolveBgHex(bg){ if(!bg||bg==="default") return null; if(bg.indexOf("var:")===0) return stVarHex(bg.slice(4)); if(bg[0]==="#") return bg; return null; }
+function stBgIsDark(bg){ if(!bg||bg==="default") return false; if(bg.indexOf("var:")===0) return !!ST_DARKVARS[bg.slice(4)]; try{ return relLum(hexToRgb(bg))<0.45; }catch{ return false; } }
+function stName(opts,v){ if(v&&v[0]==="#") return v.toUpperCase(); const m=opts.find(x=>x[0]===v); return m?m[1]:String(v); }
+
+function buildSectionThemesField(f){
+  const wrap=document.createElement("div"); wrap.className="field"+(state.missing[f.key]?" missing":""); wrap.dataset.key=f.key;
+  const lab=document.createElement("label"); lab.className="fld"; lab.textContent=f.label; wrap.appendChild(lab);
+  const hidden=document.createElement("input"); hidden.type="hidden"; hidden.id="in_"+f.key; hidden.value=state.original[f.key]||"";
+  wrap.appendChild(hidden); state.inputs[f.key]=hidden;
+  if(state.missing[f.key]){ const w=document.createElement("div"); w.className="warn"; w.textContent="Not found in index.html (marker missing)."; wrap.appendChild(w); return wrap; }
+  const rows={};
+  const paint=()=>{ for(const [sk] of ST_SECTIONS){ const r=rows[sk];
+    const bgVal = r.bgSel.value==="custom" ? r.picker.value.toUpperCase() : r.bgSel.value;
+    r.picker.classList.toggle("hidden", r.bgSel.value!=="custom");
+    const hex=stResolveBgHex(bgVal);
+    let fg=r.fgSel.value; if(fg==="auto") fg = hex ? (stBgIsDark(bgVal)?"light":"dark") : "dark";
+    r.aa.style.background = hex||"transparent";
+    r.aa.style.color = fg==="light" ? "#F6F1E9" : stVarHex("--ink");
+  } };
+  const sync=()=>{ const o={}; for(const [sk] of ST_SECTIONS){ const r=rows[sk];
+    o[sk]={ bg: r.bgSel.value==="custom" ? r.picker.value.toUpperCase() : r.bgSel.value, fg: r.fgSel.value };
+  } hidden.value=stSerialize(o); paint(); onFieldInput(f.key); };
+  const setRow=(sk,t)=>{ const r=rows[sk]; const bg=(t&&t.bg)||"default";
+    if(bg[0]==="#"){ r.bgSel.value="custom"; r.picker.value=bg.toLowerCase(); }
+    else r.bgSel.value = ST_BG_OPTS.some(x=>x[0]===bg)?bg:"default";
+    const fg=(t&&t.fg)||"auto"; r.fgSel.value = ST_FG_OPTS.some(x=>x[0]===fg)?fg:"auto"; };
+  const init=stParse(hidden.value);
+  for(const [sk,sl] of ST_SECTIONS){
+    const row=document.createElement("div"); row.className="strow";
+    const nm=document.createElement("div"); nm.className="stname"; nm.textContent=sl; row.appendChild(nm);
+    const bgSel=document.createElement("select");
+    for(const [v,l] of ST_BG_OPTS){ const o=document.createElement("option"); o.value=v; o.textContent=l; bgSel.appendChild(o); }
+    const picker=document.createElement("input"); picker.type="color"; picker.className="hidden"; picker.value="#f6f1e9";
+    const fgSel=document.createElement("select");
+    for(const [v,l] of ST_FG_OPTS){ const o=document.createElement("option"); o.value=v; o.textContent=l; fgSel.appendChild(o); }
+    const aa=document.createElement("span"); aa.className="staa"; aa.textContent="Aa";
+    bgSel.addEventListener("change",sync); picker.addEventListener("input",sync); fgSel.addEventListener("change",sync);
+    const g1=document.createElement("div"), l1=document.createElement("span"); l1.className="imglbl"; l1.textContent="Background";
+    const g1i=document.createElement("span"); g1i.style.cssText="display:flex;gap:8px;align-items:center"; g1i.appendChild(bgSel); g1i.appendChild(picker);
+    g1.appendChild(l1); g1.appendChild(g1i);
+    const g2=document.createElement("div"), l2=document.createElement("span"); l2.className="imglbl"; l2.textContent="Text color";
+    g2.appendChild(l2); g2.appendChild(fgSel);
+    const g3=document.createElement("div"), l3=document.createElement("span"); l3.className="imglbl"; l3.textContent="Preview";
+    const g3i=document.createElement("div"); g3i.appendChild(aa); g3.appendChild(l3); g3.appendChild(g3i);
+    row.appendChild(g1); row.appendChild(g2); row.appendChild(g3);
+    rows[sk]={bgSel,picker,fgSel,aa};
+    setRow(sk, init[sk]);
+    wrap.appendChild(row);
+  }
+  const h=document.createElement("div"); h.className="hint";
+  h.textContent="“Auto” text picks a readable color for the chosen background. Use Show preview (bottom bar) to see it before publishing.";
+  wrap.appendChild(h);
+  wrap.__stReset=()=>{ const cur=stParse(hidden.value); for(const [sk] of ST_SECTIONS) setRow(sk, cur[sk]); paint(); };
+  paint();
+  return wrap;
+}
+function stDiffHtml(){
+  const a=stParse(state.original.sectionthemes), b=stParse(state.inputs.sectionthemes.value);
+  const lines=[];
+  for(const [sk,sl] of ST_SECTIONS){
+    const x=Object.assign({bg:"default",fg:"auto"}, a[sk]||{}), y=Object.assign({bg:"default",fg:"auto"}, b[sk]||{});
+    if(x.bg!==y.bg||x.fg!==y.fg) lines.push(`<div class="row after"><b>${enc(sl)}</b> — background: ${enc(stName(ST_BG_OPTS,x.bg))} → <b>${enc(stName(ST_BG_OPTS,y.bg))}</b> · text: ${enc(stName(ST_FG_OPTS,x.fg))} → <b>${enc(stName(ST_FG_OPTS,y.fg))}</b></div>`);
+  }
+  return `<div class="diff"><div class="k">Section colors</div>${lines.join("")}</div>`;
 }
 
 /* ---- THEME: render colors & fonts ---- */
@@ -782,8 +872,9 @@ function togglePreview(){
 function renderPreview(){ const f=$("#preview-frame"); if(f) f.srcdoc=buildPreviewDoc(); }
 function buildPreviewDoc(){
   let t = state.originalText || ""; if(!t) return "";
-  // apply current text field values
-  for(const f of FIELDS){ if(state.missing[f.key]) continue; const inp=state.inputs[f.key]; if(inp) t=setBetween(t, f.key, displayToRaw(f, inp.value)); }
+  // apply current text field values (+ mirrored footer copies)
+  for(const f of FIELDS){ if(state.missing[f.key]) continue; const inp=state.inputs[f.key]; if(!inp) continue;
+    const raw=displayToRaw(f, inp.value); t=setBetween(t, f.key, raw); if(f.mirror) t=setBetween(t, f.mirror, raw); }
   // apply colors
   for(const c of COLORS){ if(state.colorMissing[c.key]) continue; const i=state.colorInput[c.key]; if(i && isValidHex(i.hex.value)) t=setVar(t, c.key, normHex(i.hex.value).toUpperCase()); }
   // apply fonts + font link
@@ -819,6 +910,7 @@ function discardChanges(){
     const cap=$("#imgcap_"+key); if(cap) cap.textContent="Current image";
     const w=document.querySelector(`.field[data-imgkey="${key}"]`); if(w) w.classList.remove("changed");
   }
+  const st=document.querySelector('.field[data-key="sectionthemes"]'); if(st && st.__stReset) st.__stReset();
   resetTheme();
   refreshDirty();
 }
@@ -837,7 +929,8 @@ function openReview(){
     return `<div class="diff"><div class="k">Fonts — ${enc(r.label)}</div>
       <div class="row before">${enc(state.fontOrig[k])}</div>
       <div class="row after">${enc(state.fontInput[k].value)}</div></div>`; }).join("");
-  const trows=tkeys.map(k=>{ const f=FIELD_BY_KEY[k]; return `<div class="diff"><div class="k">${enc(f.section)} — ${enc(f.label)}</div>
+  const trows=tkeys.map(k=>{ if(k==="sectionthemes") return stDiffHtml();
+    const f=FIELD_BY_KEY[k]; return `<div class="diff"><div class="k">${enc(f.section)} — ${enc(f.label)}</div>
     <div class="row before">${enc(state.original[k])||"<em>(empty)</em>"}</div>
     <div class="row after">${enc(state.inputs[k].value)||"<em>(empty)</em>"}</div></div>`; }).join("");
   const irows=ikeys.map(key=>{ const img=IMG_BY_KEY[key], p=state.imgPending[key];
@@ -872,7 +965,11 @@ async function publish(){
   if(tkeys.length || ckeys.length || fkeys.length){
     btn.textContent="Publishing…";
     let newText = state.originalText;
-    for(const k of tkeys) newText = setBetween(newText, k, displayToRaw(FIELD_BY_KEY[k], state.inputs[k].value));
+    for(const k of tkeys){
+      const f=FIELD_BY_KEY[k], raw=displayToRaw(f, state.inputs[k].value);
+      newText = setBetween(newText, k, raw);
+      if(f.mirror) newText = setBetween(newText, f.mirror, raw);
+    }
     for(const k of ckeys) newText = setVar(newText, k, normHex(state.colorInput[k].hex.value).toUpperCase());
     if(fkeys.length){
       const head=state.fontInput["--font-head"], bodyf=state.fontInput["--font-body"];
