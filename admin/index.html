@@ -221,13 +221,16 @@ const CONFIG = {
 /* ============================================================================
    FIELD MAP  —  mirrors the <!--e:key-->…<!--/e:key--> markers in index.html
    ========================================================================== */
-const SECTIONS = ["Section Colors","Navigation","Hero","Above & Beyond","What We Offer","Who We Are","Pull Quote","Contact"];
+const SECTIONS = ["Section Styles","Navigation","Contact Info","Hero","Above & Beyond","What We Offer","Who We Are","Pull Quote","Contact"];
 const FIELDS = [
-  {key:"sectionthemes",         section:"Section Colors", label:"Background & text color for each part of the page", type:"sectionthemes"},
-  {key:"nav_home",              section:"Navigation", label:"Menu item 1 (goes to top)", type:"text", mirror:"fnav_home"},
-  {key:"nav_who",               section:"Navigation", label:"Menu item 2 (goes to Who We Are)", type:"text", mirror:"fnav_who"},
-  {key:"nav_offer",             section:"Navigation", label:"Menu item 3 (goes to What We Offer)", type:"text", mirror:"fnav_offer"},
-  {key:"nav_contact",           section:"Navigation", label:"Menu item 4 (goes to Contact)", type:"text", mirror:"fnav_contact"},
+  {key:"sectionthemes",         section:"Section Styles", label:"Colors & text size for each part of the page", type:"sectionthemes"},
+  {key:"nav_home",              section:"Navigation", label:"Menu item 1 (goes to top)", type:"text", mirror:"fnav_home", hint:"The footer menu updates to match."},
+  {key:"nav_offer",             section:"Navigation", label:"Menu item 2 (goes to What We Offer)", type:"text", mirror:"fnav_offer", hint:"The footer menu updates to match."},
+  {key:"nav_who",               section:"Navigation", label:"Menu item 3 (goes to Who We Are)", type:"text", mirror:"fnav_who", hint:"The footer menu updates to match."},
+  {key:"nav_contact",           section:"Navigation", label:"Menu item 4 (goes to Contact)", type:"text", mirror:"fnav_contact", hint:"The footer menu updates to match."},
+  {key:"phone_nav",             section:"Contact Info", label:"Phone number", type:"text", mirrors:["phone_contact","phone_footer"], hint:"Updates the top bar, Contact section, and footer — call links follow automatically. If you change the number, also update the Hero call button text."},
+  {key:"email_contact",         section:"Contact Info", label:"Email address", type:"text", mirrors:["email_footer"], hint:"Updates the Contact section and footer — email links follow automatically."},
+  {key:"addr_contact",          section:"Contact Info", label:"Office address (use <br> for a new line)", type:"html", mirrors:["addr_footer"], hint:"Updates the Contact section and footer — the Google Maps link follows automatically."},
   {key:"hero_eyebrow",          section:"Hero", label:"Eyebrow (label above headline)", type:"text"},
   {key:"hero_title_1",          section:"Hero", label:"Headline — line 1", type:"text"},
   {key:"hero_title_em",         section:"Hero", label:"Headline — line 2 (red italic)", type:"text"},
@@ -424,6 +427,8 @@ function displayToRaw(f, val){
   if(f.type==="html"||f.type==="sectionthemes") return val;
   return enc(val);
 }
+// Other markers that receive the same value on publish (e.g. footer copies).
+function mirrorsOf(f){ return f.mirrors || (f.mirror ? [f.mirror] : []); }
 
 /* ---- THEME helpers: read/write CSS variables + font link ---- */
 // Read a CSS custom property value from the file text. Word-boundary safe so
@@ -664,9 +669,9 @@ function renderForm(){
       input.addEventListener("input", ()=>onFieldInput(f.key));
       wrap.appendChild(input); state.inputs[f.key]=input;
       if(state.missing[f.key]){ const w=document.createElement("div"); w.className="warn"; w.textContent="Not found in index.html (marker missing)."; wrap.appendChild(w); }
+      else if(f.hint){ const h=document.createElement("div"); h.className="hint"; h.textContent=f.hint; wrap.appendChild(h); }
       else if(f.type==="html"){ const h=document.createElement("div"); h.className="hint"; h.innerHTML="HTML allowed — e.g. <code>&lt;em&gt;…&lt;/em&gt;</code> shows as red italic."; wrap.appendChild(h); }
       else if(f.type==="list"){ const h=document.createElement("div"); h.className="hint"; h.textContent="One item per line."; wrap.appendChild(h); }
-      else if(f.mirror){ const h=document.createElement("div"); h.className="hint"; h.textContent="The footer menu updates to match."; wrap.appendChild(h); }
       body.appendChild(wrap);
     }
     det.appendChild(body); form.appendChild(det);
@@ -713,9 +718,10 @@ async function onImagePick(key, file){
 const ST_SECTIONS=[["hero","Hero"],["above","Above & Beyond"],["offer","What We Offer"],["who","Who We Are"],["quote","Pull Quote"],["contact","Contact"]];
 const ST_BG_OPTS=[["default","Site default"],["var:--cream","Cream"],["var:--cream-deep","Warm sand"],["var:--ink","Navy"],["var:--ink-soft","Slate"],["var:--red","Brand red"],["custom","Custom…"]];
 const ST_FG_OPTS=[["auto","Auto (recommended)"],["dark","Dark"],["light","Light"]];
+const ST_SIZE_OPTS=[["n","Normal"],["s","Smaller"],["l","Larger"],["xl","Extra large"]];
 const ST_DARKVARS={"--ink":1,"--ink-soft":1,"--red":1,"--red-deep":1};
 function stParse(raw){ try{ const o=JSON.parse(raw); return (o&&typeof o==="object")?o:{}; }catch{ return {}; } }
-function stSerialize(o){ const out={}; for(const [k] of ST_SECTIONS){ const t=o[k]||{}; out[k]={bg:t.bg||"default", fg:t.fg||"auto"}; } return JSON.stringify(out); }
+function stSerialize(o){ const out={}; for(const [k] of ST_SECTIONS){ const t=o[k]||{}; out[k]={bg:t.bg||"default", fg:t.fg||"auto", hs:t.hs||"n", bs:t.bs||"n"}; } return JSON.stringify(out); }
 function stVarHex(v){ const fall={"--cream":"#F6F1E9","--cream-deep":"#EBE3D2","--ink":"#0F1B2D","--ink-soft":"#2B3A52","--red":"#D7253A","--red-deep":"#A81B2C"}; return state.colorOrig[v]||fall[v]||"#F6F1E9"; }
 function stResolveBgHex(bg){ if(!bg||bg==="default") return null; if(bg.indexOf("var:")===0) return stVarHex(bg.slice(4)); if(bg[0]==="#") return bg; return null; }
 function stBgIsDark(bg){ if(!bg||bg==="default") return false; if(bg.indexOf("var:")===0) return !!ST_DARKVARS[bg.slice(4)]; try{ return relLum(hexToRgb(bg))<0.45; }catch{ return false; } }
@@ -737,12 +743,14 @@ function buildSectionThemesField(f){
     r.aa.style.color = fg==="light" ? "#F6F1E9" : stVarHex("--ink");
   } };
   const sync=()=>{ const o={}; for(const [sk] of ST_SECTIONS){ const r=rows[sk];
-    o[sk]={ bg: r.bgSel.value==="custom" ? r.picker.value.toUpperCase() : r.bgSel.value, fg: r.fgSel.value };
+    o[sk]={ bg: r.bgSel.value==="custom" ? r.picker.value.toUpperCase() : r.bgSel.value, fg: r.fgSel.value, hs: r.hsSel.value, bs: r.bsSel.value };
   } hidden.value=stSerialize(o); paint(); onFieldInput(f.key); };
   const setRow=(sk,t)=>{ const r=rows[sk]; const bg=(t&&t.bg)||"default";
     if(bg[0]==="#"){ r.bgSel.value="custom"; r.picker.value=bg.toLowerCase(); }
     else r.bgSel.value = ST_BG_OPTS.some(x=>x[0]===bg)?bg:"default";
-    const fg=(t&&t.fg)||"auto"; r.fgSel.value = ST_FG_OPTS.some(x=>x[0]===fg)?fg:"auto"; };
+    const fg=(t&&t.fg)||"auto"; r.fgSel.value = ST_FG_OPTS.some(x=>x[0]===fg)?fg:"auto";
+    const hs=(t&&t.hs)||"n"; r.hsSel.value = ST_SIZE_OPTS.some(x=>x[0]===hs)?hs:"n";
+    const bs=(t&&t.bs)||"n"; r.bsSel.value = ST_SIZE_OPTS.some(x=>x[0]===bs)?bs:"n"; };
   const init=stParse(hidden.value);
   for(const [sk,sl] of ST_SECTIONS){
     const row=document.createElement("div"); row.className="strow";
@@ -752,17 +760,21 @@ function buildSectionThemesField(f){
     const picker=document.createElement("input"); picker.type="color"; picker.className="hidden"; picker.value="#f6f1e9";
     const fgSel=document.createElement("select");
     for(const [v,l] of ST_FG_OPTS){ const o=document.createElement("option"); o.value=v; o.textContent=l; fgSel.appendChild(o); }
+    const hsSel=document.createElement("select");
+    for(const [v,l] of ST_SIZE_OPTS){ const o=document.createElement("option"); o.value=v; o.textContent=l; hsSel.appendChild(o); }
+    const bsSel=document.createElement("select");
+    for(const [v,l] of ST_SIZE_OPTS){ const o=document.createElement("option"); o.value=v; o.textContent=l; bsSel.appendChild(o); }
     const aa=document.createElement("span"); aa.className="staa"; aa.textContent="Aa";
     bgSel.addEventListener("change",sync); picker.addEventListener("input",sync); fgSel.addEventListener("change",sync);
-    const g1=document.createElement("div"), l1=document.createElement("span"); l1.className="imglbl"; l1.textContent="Background";
+    hsSel.addEventListener("change",sync); bsSel.addEventListener("change",sync);
+    const mkGroup=(lbl,el)=>{ const g=document.createElement("div"), l=document.createElement("span"); l.className="imglbl"; l.textContent=lbl; g.appendChild(l); g.appendChild(el); return g; };
     const g1i=document.createElement("span"); g1i.style.cssText="display:flex;gap:8px;align-items:center"; g1i.appendChild(bgSel); g1i.appendChild(picker);
-    g1.appendChild(l1); g1.appendChild(g1i);
-    const g2=document.createElement("div"), l2=document.createElement("span"); l2.className="imglbl"; l2.textContent="Text color";
-    g2.appendChild(l2); g2.appendChild(fgSel);
-    const g3=document.createElement("div"), l3=document.createElement("span"); l3.className="imglbl"; l3.textContent="Preview";
-    const g3i=document.createElement("div"); g3i.appendChild(aa); g3.appendChild(l3); g3.appendChild(g3i);
-    row.appendChild(g1); row.appendChild(g2); row.appendChild(g3);
-    rows[sk]={bgSel,picker,fgSel,aa};
+    row.appendChild(mkGroup("Background", g1i));
+    row.appendChild(mkGroup("Text color", fgSel));
+    row.appendChild(mkGroup("Heading size", hsSel));
+    row.appendChild(mkGroup("Text size", bsSel));
+    row.appendChild(mkGroup("Preview", aa));
+    rows[sk]={bgSel,picker,fgSel,hsSel,bsSel,aa};
     setRow(sk, init[sk]);
     wrap.appendChild(row);
   }
@@ -777,10 +789,15 @@ function stDiffHtml(){
   const a=stParse(state.original.sectionthemes), b=stParse(state.inputs.sectionthemes.value);
   const lines=[];
   for(const [sk,sl] of ST_SECTIONS){
-    const x=Object.assign({bg:"default",fg:"auto"}, a[sk]||{}), y=Object.assign({bg:"default",fg:"auto"}, b[sk]||{});
-    if(x.bg!==y.bg||x.fg!==y.fg) lines.push(`<div class="row after"><b>${enc(sl)}</b> — background: ${enc(stName(ST_BG_OPTS,x.bg))} → <b>${enc(stName(ST_BG_OPTS,y.bg))}</b> · text: ${enc(stName(ST_FG_OPTS,x.fg))} → <b>${enc(stName(ST_FG_OPTS,y.fg))}</b></div>`);
+    const x=Object.assign({bg:"default",fg:"auto",hs:"n",bs:"n"}, a[sk]||{}), y=Object.assign({bg:"default",fg:"auto",hs:"n",bs:"n"}, b[sk]||{});
+    const parts=[];
+    if(x.bg!==y.bg) parts.push(`background: ${enc(stName(ST_BG_OPTS,x.bg))} → <b>${enc(stName(ST_BG_OPTS,y.bg))}</b>`);
+    if(x.fg!==y.fg) parts.push(`text color: ${enc(stName(ST_FG_OPTS,x.fg))} → <b>${enc(stName(ST_FG_OPTS,y.fg))}</b>`);
+    if(x.hs!==y.hs) parts.push(`heading size: ${enc(stName(ST_SIZE_OPTS,x.hs))} → <b>${enc(stName(ST_SIZE_OPTS,y.hs))}</b>`);
+    if(x.bs!==y.bs) parts.push(`text size: ${enc(stName(ST_SIZE_OPTS,x.bs))} → <b>${enc(stName(ST_SIZE_OPTS,y.bs))}</b>`);
+    if(parts.length) lines.push(`<div class="row after"><b>${enc(sl)}</b> — ${parts.join(" · ")}</div>`);
   }
-  return `<div class="diff"><div class="k">Section colors</div>${lines.join("")}</div>`;
+  return `<div class="diff"><div class="k">Section styles</div>${lines.join("")}</div>`;
 }
 
 /* ---- THEME: render colors & fonts ---- */
@@ -874,7 +891,7 @@ function buildPreviewDoc(){
   let t = state.originalText || ""; if(!t) return "";
   // apply current text field values (+ mirrored footer copies)
   for(const f of FIELDS){ if(state.missing[f.key]) continue; const inp=state.inputs[f.key]; if(!inp) continue;
-    const raw=displayToRaw(f, inp.value); t=setBetween(t, f.key, raw); if(f.mirror) t=setBetween(t, f.mirror, raw); }
+    const raw=displayToRaw(f, inp.value); t=setBetween(t, f.key, raw); for(const m of mirrorsOf(f)) t=setBetween(t, m, raw); }
   // apply colors
   for(const c of COLORS){ if(state.colorMissing[c.key]) continue; const i=state.colorInput[c.key]; if(i && isValidHex(i.hex.value)) t=setVar(t, c.key, normHex(i.hex.value).toUpperCase()); }
   // apply fonts + font link
@@ -968,7 +985,7 @@ async function publish(){
     for(const k of tkeys){
       const f=FIELD_BY_KEY[k], raw=displayToRaw(f, state.inputs[k].value);
       newText = setBetween(newText, k, raw);
-      if(f.mirror) newText = setBetween(newText, f.mirror, raw);
+      for(const m of mirrorsOf(f)) newText = setBetween(newText, m, raw);
     }
     for(const k of ckeys) newText = setVar(newText, k, normHex(state.colorInput[k].hex.value).toUpperCase());
     if(fkeys.length){

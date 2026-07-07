@@ -144,21 +144,23 @@ contrast pairs all live near the top of the `<script>` in `admin/index.html`
 (`COLORS`, `FONTS`, `CONTRAST_PAIRS`) — easy to extend. **No Worker change needed**
 for this feature (it only writes `index.html`, already allowed).
 
-## 🎨 Section Colors & Navigation
-Two more editor sections (no Worker change needed — both only write `index.html`):
-- **Section Colors** — each part of the page (Hero, Above & Beyond, What We Offer,
+## 🎨 Section Styles, Navigation & Contact Info
+Three more editor sections (no Worker change needed — all write only `index.html`):
+- **Section Styles** — each part of the page (Hero, Above & Beyond, What We Offer,
   Who We Are, Pull Quote, Contact) gets its own **Background** (site palette or
-  Custom… color picker) and **Text color** (Auto / Dark / Light — Auto picks a
-  readable color for the chosen background). Stored as JSON between the
+  Custom… color picker), **Text color** (Auto / Dark / Light — Auto picks a
+  readable color for the chosen background), **Heading size**, and **Text size**
+  (Smaller / Normal / Larger / Extra large). Stored as JSON between the
   `<!--e:sectionthemes-->` markers; a small script in `index.html` applies it on
-  load. "Site default" + "Auto" = exactly the original look.
-- **Navigation** — the four menu labels are editable; the **footer menu updates
-  to match automatically** (each nav field has a `mirror` key pointing at its
-  footer marker). Link destinations are fixed; adding/removing menu items is a
-  code change.
+  load. All defaults = exactly the original look.
+- **Navigation** — the four menu labels are editable and ordered to match the
+  page flow (Home → What We Offer → Who We Are → Contact); the **footer menu
+  updates to match automatically**. Link destinations are fixed; adding/removing
+  menu items is a code change.
+- **Contact Info** — phone, email, and office address are single fields that
+  update every location at once (top bar, Contact section, footer). The
+  `tel:` / `mailto:` / Google-Maps links re-sync automatically from the visible
+  text on page load. One exception: the Hero call-button text is its own field.
 
-## ⚠️ Known limitation (this version)
-Phone, email, and street address each appear in several places (nav, hero,
-contact, footer — and inside `tel:`/`mailto:` links). To avoid partial updates
-they’re **not** form fields yet. Edit those directly in `index.html`, or ask to
-add properly-synced contact fields.
+Also: the contact form was removed (per Bob), the B/J founder watermarks are
+gone, and founder cards with no content auto-hide.

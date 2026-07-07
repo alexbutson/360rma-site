@@ -314,8 +314,8 @@
   /* ---------- CONTACT ---------- */
   .contact { background: var(--cream-deep); }
   .contact-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 80px;
-    align-items: start;
+    display: grid; grid-template-columns: 1fr; gap: 40px;
+    align-items: start; max-width: 720px;
   }
   .contact-info dl { display: grid; grid-template-columns: 100px 1fr; gap: 28px 24px; }
   .contact-info dt {
@@ -437,8 +437,26 @@
   section.themed-fg .hero-stat .num { color: var(--red) !important; }
   section.themed-fg .hero-stat .lbl { color: var(--muted) !important; }
   section.themed-fg .spanish-tag { color: var(--ink-soft) !important; }
+  /* per-section font sizes (set via the admin editor) */
+  section.themed-hs h1 { font-size: calc(clamp(2.6rem, 5.2vw, 4.5rem) * var(--ths, 1)) !important; }
+  section.themed-hs .section-title { font-size: calc(clamp(2rem, 3.8vw, 3rem) * var(--ths, 1)) !important; }
+  section.themed-hs blockquote { font-size: calc(clamp(2rem, 4.5vw, 3.4rem) * var(--ths, 1)) !important; }
+  section.themed-hs h3 { font-size: calc(28px * var(--ths, 1)) !important; }
+  section.themed-hs .founder h3 { font-size: calc(32px * var(--ths, 1)) !important; }
+  section.themed-hs .hero-stat .num { font-size: calc(38px * var(--ths, 1)) !important; }
+  section.themed-bs p { font-size: calc(17px * var(--tbs, 1)) !important; }
+  section.themed-bs p.lede { font-size: calc(19px * var(--tbs, 1)) !important; }
+  section.themed-bs .section-lede { font-size: calc(18px * var(--tbs, 1)) !important; }
+  section.themed-bs .founder p { font-size: calc(16px * var(--tbs, 1)) !important; }
+  section.themed-bs p[style*="font-size: 18px"] { font-size: calc(18px * var(--tbs, 1)) !important; }
+  section.themed-bs p[style*="font-size: 22px"] { font-size: calc(22px * var(--tbs, 1)) !important; }
+  section.themed-bs .coverages li { font-size: calc(22px * var(--tbs, 1)) !important; }
+  section.themed-bs .contact-info dd { font-size: calc(17px * var(--tbs, 1)) !important; }
+  section.themed-bs .contact-info dt { font-size: calc(12px * var(--tbs, 1)) !important; }
+  section.themed-bs .attribution { font-size: calc(13px * var(--tbs, 1)) !important; }
+  section.themed-bs .hero-eyebrow, section.themed-bs .section-eyebrow { font-size: calc(12px * var(--tbs, 1)) !important; }
 </style>
-<script type="application/json" id="theme-config"><!--e:sectionthemes-->{"hero":{"bg":"default","fg":"auto"},"above":{"bg":"default","fg":"auto"},"offer":{"bg":"default","fg":"auto"},"who":{"bg":"default","fg":"auto"},"quote":{"bg":"default","fg":"auto"},"contact":{"bg":"default","fg":"auto"}}<!--/e:sectionthemes--></script>
+<script type="application/json" id="theme-config"><!--e:sectionthemes-->{"hero":{"bg":"default","fg":"auto","hs":"n","bs":"n"},"above":{"bg":"default","fg":"auto","hs":"n","bs":"n"},"offer":{"bg":"default","fg":"auto","hs":"n","bs":"n"},"who":{"bg":"default","fg":"auto","hs":"n","bs":"n"},"quote":{"bg":"default","fg":"auto","hs":"n","bs":"n"},"contact":{"bg":"default","fg":"auto","hs":"n","bs":"n"}}<!--/e:sectionthemes--></script>
 </head>
 <body>
 
@@ -449,12 +467,12 @@
     <nav>
       <ul class="nav-menu" id="nav-menu">
         <li><a href="#top"><!--e:nav_home-->Home<!--/e:nav_home--></a></li>
-        <li><a href="#who"><!--e:nav_who-->Who We Are<!--/e:nav_who--></a></li>
         <li><a href="#offer"><!--e:nav_offer-->What We Offer<!--/e:nav_offer--></a></li>
+        <li><a href="#who"><!--e:nav_who-->Who We Are<!--/e:nav_who--></a></li>
         <li><a href="#contact"><!--e:nav_contact-->Contact / Claims<!--/e:nav_contact--></a></li>
       </ul>
     </nav>
-    <a href="tel:+12035955080" class="nav-cta">(203) 595-5080</a>
+    <a href="tel:+12035955080" class="nav-cta"><!--e:phone_nav-->(203) 595-5080<!--/e:phone_nav--></a>
     <button class="nav-toggle" aria-label="Menu" id="nav-toggle">
       <span></span><span></span><span></span>
     </button>
@@ -548,13 +566,11 @@
     </div>
     <div class="founder-grid reveal">
       <div class="founder">
-        <div class="founder-mark">B</div>
         <h3><!--e:founder1_name--><!--/e:founder1_name--></h3>
         <div class="role"><!--e:founder1_role--><!--/e:founder1_role--></div>
         <p><!--e:founder1_bio--><!--/e:founder1_bio--></p>
       </div>
       <div class="founder">
-        <div class="founder-mark">J</div>
         <h3><!--e:founder2_name--><!--/e:founder2_name--></h3>
         <div class="role"><!--e:founder2_role--><!--/e:founder2_role--></div>
         <p><!--e:founder2_bio--><!--/e:founder2_bio--></p>
@@ -586,11 +602,11 @@
       <div class="contact-info reveal">
         <dl>
           <dt>Phone</dt>
-          <dd><a class="phone-big" href="tel:+12035955080">(203) 595-5080</a></dd>
+          <dd><a class="phone-big" href="tel:+12035955080"><!--e:phone_contact-->(203) 595-5080<!--/e:phone_contact--></a></dd>
           <dt>Email</dt>
-          <dd><a href="mailto:bobj@360rma.com">bobj@360rma.com</a></dd>
+          <dd><a href="mailto:bobj@360rma.com"><!--e:email_contact-->bobj@360rma.com<!--/e:email_contact--></a></dd>
           <dt>Office</dt>
-          <dd>2777 Summer Street, 6th Floor<br>Stamford, CT 06903<br>
+          <dd><!--e:addr_contact-->2777 Summer Street, 6th Floor<br>Stamford, CT 06903<!--/e:addr_contact--><br>
             <a href="https://maps.google.com/?q=2777+Summer+Street+Stamford+CT" target="_blank" rel="noopener" style="font-size:14px;">View on Google Maps →</a>
           </dd>
           <dt>Hours</dt>
@@ -598,14 +614,6 @@
         </dl>
         <span class="spanish-tag">🌐 Spanish speaking available</span>
       </div>
-      <form class="contact-form reveal" id="contact-form">
-        <h3>Send us a message</h3>
-        <div class="field"><label for="n">Name</label><input id="n" name="name" type="text" required></div>
-        <div class="field"><label for="p">Phone</label><input id="p" name="phone" type="tel" required></div>
-        <div class="field"><label for="e">Email</label><input id="e" name="email" type="email" required></div>
-        <div class="field"><label for="m">How can we help?</label><textarea id="m" name="message" rows="4" required></textarea></div>
-        <button type="submit" class="form-submit">Request a Quote →</button>
-      </form>
     </div>
   </div>
 </section>
@@ -622,17 +630,17 @@
         <h4>Navigate</h4>
         <ul>
           <li><a href="#top"><!--e:fnav_home-->Home<!--/e:fnav_home--></a></li>
-          <li><a href="#who"><!--e:fnav_who-->Who We Are<!--/e:fnav_who--></a></li>
           <li><a href="#offer"><!--e:fnav_offer-->What We Offer<!--/e:fnav_offer--></a></li>
+          <li><a href="#who"><!--e:fnav_who-->Who We Are<!--/e:fnav_who--></a></li>
           <li><a href="#contact"><!--e:fnav_contact-->Contact / Claims<!--/e:fnav_contact--></a></li>
         </ul>
       </div>
       <div>
         <h4>Reach Us</h4>
         <ul>
-          <li><a href="tel:+12035955080">(203) 595-5080</a></li>
-          <li><a href="mailto:bobj@360rma.com">bobj@360rma.com</a></li>
-          <li>2777 Summer St, 6th Fl<br>Stamford, CT 06903</li>
+          <li><a href="tel:+12035955080"><!--e:phone_footer-->(203) 595-5080<!--/e:phone_footer--></a></li>
+          <li><a href="mailto:bobj@360rma.com"><!--e:email_footer-->bobj@360rma.com<!--/e:email_footer--></a></li>
+          <li><!--e:addr_footer-->2777 Summer St, 6th Fl<br>Stamford, CT 06903<!--/e:addr_footer--></li>
         </ul>
       </div>
     </div>
@@ -676,13 +684,13 @@
         .map(v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
       return 0.2126 * r + 0.7152 * g + 0.0722 * b;
     };
-    // which palette variables count as "dark" backgrounds for Auto text
     const darkVars = { '--ink': 1, '--ink-soft': 1, '--red': 1, '--red-deep': 1 };
+    const scale = { s: 0.9, n: 1, l: 1.12, xl: 1.28 };
     for (const key in ids) {
       const sec = document.getElementById(ids[key]);
       const t = cfg[key];
       if (!sec || !t) continue;
-      sec.classList.remove('themed-fg');
+      sec.classList.remove('themed-fg', 'themed-hs', 'themed-bs');
       sec.style.background = '';
       let bg = null, bgDark = false;
       if (t.bg && t.bg !== 'default') {
@@ -703,9 +711,34 @@
         sec.style.setProperty('--tfg-accent', '#FF8A95');
         sec.classList.add('themed-fg');
       }
+      if (t.hs && t.hs !== 'n' && scale[t.hs]) { sec.style.setProperty('--ths', scale[t.hs]); sec.classList.add('themed-hs'); }
+      if (t.bs && t.bs !== 'n' && scale[t.bs]) { sec.style.setProperty('--tbs', scale[t.bs]); sec.classList.add('themed-bs'); }
     }
   }
   applySectionThemes();
+  // Keep call / email / map links in sync with the visible (editable) text
+  document.querySelectorAll('a[href^="tel:"]').forEach(a => {
+    const d = (a.textContent.match(/\d/g) || []).join('');
+    if (d.length === 10) a.href = 'tel:+1' + d;
+    else if (d.length === 11 && d[0] === '1') a.href = 'tel:+' + d;
+  });
+  document.querySelectorAll('a[href^="mailto:"]').forEach(a => {
+    const m = a.textContent.trim();
+    if (/^\S+@\S+\.\S+$/.test(m)) a.href = 'mailto:' + m;
+  });
+  (() => {
+    const map = document.querySelector('a[href*="maps.google"]');
+    if (!map) return;
+    const dd = map.closest('dd');
+    if (!dd) return;
+    const c = dd.cloneNode(true);
+    c.querySelectorAll('a').forEach(x => x.remove());
+    c.querySelectorAll('br').forEach(x => x.replaceWith(', '));
+    const q = c.textContent.replace(/\s+/g, ' ').replace(/(, )+/g, ', ').trim().replace(/,$/, '');
+    if (q) map.href = 'https://maps.google.com/?q=' + encodeURIComponent(q);
+  })();
+  // Hide founder cards that have no content
+  document.querySelectorAll('.founder').forEach(el => { if (!el.textContent.trim()) el.style.display = 'none'; });
 </script>
 
 </body>
