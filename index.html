@@ -710,6 +710,11 @@
         sec.style.setProperty('--tfg-soft', '#B8C2D4');
         sec.style.setProperty('--tfg-accent', '#FF8A95');
         sec.classList.add('themed-fg');
+      } else if (typeof fg === 'string' && fg[0] === '#') {
+        sec.style.setProperty('--tfg', fg);
+        sec.style.setProperty('--tfg-soft', fg);
+        sec.style.setProperty('--tfg-accent', fg);
+        sec.classList.add('themed-fg');
       }
       if (t.hs && t.hs !== 'n' && scale[t.hs]) { sec.style.setProperty('--ths', scale[t.hs]); sec.classList.add('themed-hs'); }
       if (t.bs && t.bs !== 'n' && scale[t.bs]) { sec.style.setProperty('--tbs', scale[t.bs]); sec.classList.add('themed-bs'); }
