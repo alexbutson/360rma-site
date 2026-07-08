@@ -273,8 +273,8 @@ const FIELD_BY_KEY = Object.fromEntries(FIELDS.map(f => [f.key, f]));
    allow-listed in the Worker.
    ========================================================================== */
 const IMAGES = [
-  {key:"hero", path:"images/hero-bg.jpg", label:"Hero photo", accept:"image/*", hint:"The big photo near the top. A wide JPG (~1200px) looks best."},
-  {key:"logo", path:"images/logo.png",   label:"Logo (header & footer)", accept:"image/*", hint:"A PNG with a transparent background works best."},
+  {key:"hero", path:"images/hero-bg.jpg", section:"Hero",       label:"Hero photo", accept:"image/*", hint:"The big photo near the top. A wide JPG (~1200px) looks best."},
+  {key:"logo", path:"images/logo.png",    section:"Navigation", label:"Logo (appears in the top bar & footer)", accept:"image/*", hint:"A PNG with a transparent background works best."},
 ];
 const IMG_BY_KEY = Object.fromEntries(IMAGES.map(i => [i.key, i]));
 
@@ -676,27 +676,32 @@ function renderForm(){
       else if(f.type==="list"){ const h=document.createElement("div"); h.className="hint"; h.textContent="One item per line."; wrap.appendChild(h); }
       body.appendChild(wrap);
     }
+    for(const img of IMAGES.filter(i => i.section===section)) appendImageField(body, img);
     det.appendChild(body); form.appendChild(det);
   }
   renderImages(form);
 }
 
+// Build one image-replace control and append it to a section body.
+function appendImageField(body, img){
+  const wrap=document.createElement("div"); wrap.className="field imgfield"; wrap.dataset.imgkey=img.key;
+  const lab=document.createElement("label"); lab.className="fld"; lab.textContent=img.label; wrap.appendChild(lab);
+  const prev=document.createElement("img"); prev.className="imgprev"; prev.id="imgprev_"+img.key; prev.alt=""; prev.src="../"+img.path+"?v="+Date.now(); wrap.appendChild(prev);
+  const file=document.createElement("input"); file.type="file"; file.id="imgfile_"+img.key; file.accept=img.accept||"image/*";
+  file.addEventListener("change", ()=>onImagePick(img.key, file.files && file.files[0]));
+  wrap.appendChild(file);
+  const cap=document.createElement("div"); cap.className="hint"; cap.id="imgcap_"+img.key; cap.textContent="Current image"; wrap.appendChild(cap);
+  if(img.hint){ const h=document.createElement("div"); h.className="hint"; h.textContent=img.hint; wrap.appendChild(h); }
+  body.appendChild(wrap);
+}
+// Fallback: any image whose section isn't a real section still gets its own "Images" block.
 function renderImages(form){
-  if(!IMAGES.length) return;
+  const leftovers=IMAGES.filter(i => !i.section || !SECTIONS.includes(i.section));
+  if(!leftovers.length) return;
   const det=document.createElement("details"); det.className="sec"; det.open=true;
   const sum=document.createElement("summary"); sum.textContent="Images"; det.appendChild(sum);
   const body=document.createElement("div"); body.className="body";
-  for(const img of IMAGES){
-    const wrap=document.createElement("div"); wrap.className="field imgfield"; wrap.dataset.imgkey=img.key;
-    const lab=document.createElement("label"); lab.className="fld"; lab.textContent=img.label; wrap.appendChild(lab);
-    const prev=document.createElement("img"); prev.className="imgprev"; prev.id="imgprev_"+img.key; prev.alt=""; prev.src="../"+img.path+"?v="+Date.now(); wrap.appendChild(prev);
-    const file=document.createElement("input"); file.type="file"; file.id="imgfile_"+img.key; file.accept=img.accept||"image/*";
-    file.addEventListener("change", ()=>onImagePick(img.key, file.files && file.files[0]));
-    wrap.appendChild(file);
-    const cap=document.createElement("div"); cap.className="hint"; cap.id="imgcap_"+img.key; cap.textContent="Current image"; wrap.appendChild(cap);
-    if(img.hint){ const h=document.createElement("div"); h.className="hint"; h.textContent=img.hint; wrap.appendChild(h); }
-    body.appendChild(wrap);
-  }
+  for(const img of leftovers) appendImageField(body, img);
   det.appendChild(body); form.appendChild(det);
 }
 async function onImagePick(key, file){
