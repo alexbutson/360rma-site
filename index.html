@@ -57,7 +57,7 @@
   .nav-menu a {
     font-size: 21px; font-weight: 500; letter-spacing: .02em;
     color: var(--ink-soft); position: relative; padding: 6px 0;
-    transition: color .2s;
+    transition: color .2s; white-space: nowrap;
   }
   .nav-menu a::after {
     content: ''; position: absolute; bottom: 0; left: 0;
@@ -74,6 +74,14 @@
     transition: all .2s;
   }
   .nav-cta:hover { background: var(--red); color: var(--cream); }
+  .nav-cta { white-space: nowrap; }
+  /* between tablet and full desktop, step the enlarged header down so it fits on one line */
+  @media (max-width: 1240px) and (min-width: 901px) {
+    .nav-menu { gap: 24px; }
+    .nav-menu a { font-size: 17px; }
+    .nav-cta { font-size: 20px; padding: 11px 20px; }
+    .nav-logo img { height: 56px; }
+  }
   .nav-toggle { display: none; background: none; border: none; cursor: pointer; padding: 8px; }
   .nav-toggle span {
     display: block; width: 22px; height: 1.5px; background: var(--ink); margin: 5px 0;
