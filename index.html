@@ -68,11 +68,11 @@
   .nav-cta {
     font-family: var(--font-head);
     font-size: 21px; font-weight: 500;
-    color: var(--red); padding: 12px 22px;
+    color: #fff; background: var(--red); padding: 12px 22px;
     border: 1.5px solid var(--red); border-radius: 999px;
     transition: all .2s;
   }
-  .nav-cta:hover { background: var(--red); color: var(--cream); }
+  .nav-cta:hover { background: var(--red-deep); border-color: var(--red-deep); color: #fff; }
   .nav-cta { white-space: nowrap; }
   /* between tablet and full desktop, step the enlarged header down so it fits on one line */
   @media (max-width: 1240px) and (min-width: 901px) {
@@ -469,7 +469,8 @@
   /* nav bar theming (set via the admin editor's Navigation section) */
   header.nav.themed-fg .nav-menu a { color: var(--tfg) !important; }
   header.nav.themed-fg .nav-menu a:hover { color: var(--tfg-accent) !important; }
-  header.nav.themed-fg .nav-cta { color: var(--tfg-accent) !important; border-color: var(--tfg-accent) !important; }
+  header.nav.themed-fg .nav-cta { color: #fff !important; background: var(--tfg-accent) !important; border-color: var(--tfg-accent) !important; }
+  header.nav.themed-fg .nav-cta:hover { filter: brightness(.85); }
   header.nav.themed-fg .nav-toggle span { background: var(--tfg) !important; }
   header.nav.themed-hs .nav-cta { font-size: calc(17px * var(--ths, 1)) !important; }
   header.nav.themed-bs .nav-menu a { font-size: calc(14px * var(--tbs, 1)) !important; }
